@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Feedback data (sensitive)
+feedback-data.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# OpenClaw workspace files (not part of the project)
+../.clawhub/
+../AGENTS.md
+../BOOTSTRAP.md
+../HEARTBEAT.md
+../IDENTITY.md
+../MEMORY.md
+../SOUL.md
+../TOOLS.md
+../USER.md
+../chat-reop/
+../chat-repo/
+../chat/
+../skills/
