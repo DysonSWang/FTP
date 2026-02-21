@@ -1,0 +1,22 @@
+{
+  "appId": "com.hainan.ftp.policy",
+  "appName": "海南自贸港政策库",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "http://120.48.16.193:5173",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#667eea",
+      "showSpinner": false
+    }
+  }
+}

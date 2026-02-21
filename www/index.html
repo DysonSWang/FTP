@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Hainan FTP Policy Database | 海南自贸港政策库</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { text-align: center; color: white; padding: 40px 20px; }
+        header h1 { font-size: 2.5rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        header p { font-size: 1.1rem; opacity: 0.9; }
+        .lang-switcher { position: fixed; top: 20px; right: 20px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 25px; padding: 5px; display: flex; gap: 5px; z-index: 1000; }
+        .lang-btn { background: transparent; border: 2px solid rgba(255,255,255,0.3); color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s; }
+        .lang-btn:hover, .lang-btn.active { background: white; color: #667eea; border-color: white; }
+        .search-box { background: white; border-radius: 50px; padding: 15px 30px; display: flex; align-items: center; box-shadow: 0 10px 40px rgba(0,0,0,0.2); margin: 30px auto; max-width: 600px; }
+        .search-box input { flex: 1; border: none; outline: none; font-size: 1rem; padding: 10px; }
+        .search-box button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 30px; border-radius: 25px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; }
+        .search-box button:hover { transform: scale(1.05); }
+        .category-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin: 30px 0; justify-content: center; }
+        .category-tab { background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 25px; cursor: pointer; transition: all 0.3s; font-size: 0.95rem; }
+        .category-tab:hover, .category-tab.active { background: white; color: #667eea; border-color: white; }
+        .policy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; margin-top: 30px; }
+        .policy-card { background: white; border-radius: 15px; padding: 25px; cursor: pointer; transition: all 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .policy-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+        .category { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 5px 12px; border-radius: 15px; font-size: 0.85rem; display: inline-block; margin-bottom: 15px; }
+        .policy-card h3 { color: #333; font-size: 1.2rem; margin-bottom: 10px; line-height: 1.4; }
+        .policy-card p { color: #666; font-size: 0.95rem; line-height: 1.6; margin-bottom: 15px; }
+        .meta { display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.9rem; }
+        .arrow { color: #667eea; font-weight: bold; transition: transform 0.3s; }
+        .policy-card:hover .arrow { transform: translateX(5px); }
+        .stats { display: flex; justify-content: center; gap: 40px; margin-top: 30px; }
+        .stat-item { text-align: center; }
+        .stat-item .number { display: block; font-size: 2rem; font-weight: bold; color: white; }
+        .stat-item .label { font-size: 0.9rem; opacity: 0.9; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 20px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .modal-header { padding: 25px; border-bottom: 1px solid #e0e0e0; position: relative; }
+        .modal-close { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 2rem; cursor: pointer; color: #999; transition: color 0.3s; }
+        .modal-close:hover { color: #333; }
+        .category-tag { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 5px 12px; border-radius: 15px; font-size: 0.85rem; display: inline-block; margin-bottom: 10px; }
+        .modal-header h2 { color: #333; font-size: 1.5rem; margin-top: 10px; }
+        .modal-body { padding: 25px; }
+        .content-section { margin-bottom: 25px; }
+        .content-section h3 { color: #667eea; font-size: 1.1rem; margin-bottom: 15px; }
+        .content-section p, .content-section div { color: #555; line-height: 1.8; font-size: 0.95rem; }
+        .highlight-box { background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-left: 4px solid #667eea; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .highlight-box strong { color: #667eea; }
+        .policy-link-btn { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 20px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: transform 0.3s; margin: 15px 0; }
+        .policy-link-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        .related-questions-list { display: flex; flex-direction: column; gap: 10px; }
+        .question-item { padding: 12px 15px; background: #f8f9fa; border-radius: 8px; cursor: pointer; transition: all 0.3s; font-size: 0.9rem; }
+        .question-item:hover { background: #667eea; color: white; transform: translateX(5px); }
+        .modal-footer { padding: 20px 25px; background: #f8f9fa; border-top: 1px solid #e0e0e0; display: flex; justify-content: space-between; font-size: 0.85rem; color: #999; }
+        .modal-footer a { color: #667eea; text-decoration: none; }
+        .robot-btn { position: fixed; bottom: 30px; right: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 25px; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); display: flex; align-items: center; gap: 10px; transition: all 0.3s; z-index: 1500; }
+        .robot-btn:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5); }
+        .robot-panel { display: none; position: fixed; bottom: 100px; right: 30px; width: 400px; height: 600px; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 1500; flex-direction: column; overflow: hidden; }
+        .robot-panel.active { display: flex; }
+        .robot-header { padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; justify-content: space-between; align-items: center; }
+        .robot-title { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+        .robot-close { background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: background 0.3s; }
+        .robot-close:hover { background: rgba(255,255,255,0.3); }
+        .robot-chat { flex: 1; padding: 20px; overflow-y: auto; background: #f8f9fa; }
+        .robot-message { margin-bottom: 15px; display: flex; }
+        .robot-message.user { justify-content: flex-end; }
+        .robot-message .message-content { max-width: 80%; padding: 12px 16px; border-radius: 15px; font-size: 0.95rem; line-height: 1.5; }
+        .robot-message.user .message-content { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .robot-message.bot .message-content { background: white; color: #333; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .robot-message.bot .message-content a { color: #667eea; text-decoration: underline; }
+        .robot-message.bot .message-content strong { color: #667eea; font-weight: 600; }
+        .robot-message.bot .message-content .chat-hr { border:none; border-top:1px solid #e0e0e0; margin:15px 0; display:block; }
+        .suggested-question { cursor: pointer; padding: 8px 12px; margin: 5px 0; background: #f8f9fa; border-radius: 8px; transition: all 0.3s; display: block; }
+        .suggested-question:hover { background: #667eea; color: white; transform: translateX(5px); }
+        .typing-cursor { animation: blink 1s infinite; color: #667eea; }
+        @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+        .message-actions { display: flex; gap: 8px; margin-top: 15px; padding-top: 12px; border-top: 1px solid #e0e0e0; }
+        .action-btn { background: #f8f9fa; border: 1px solid #e0e0e0; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.3s; color: #666; }
+        .action-btn:hover { background: #667eea; color: white; border-color: #667eea; }
+        .action-btn.voted { background: #667eea; color: white; border-color: #667eea; }
+        .robot-input-area { padding: 15px; background: white; border-top: 1px solid #e0e0e0; display: flex; gap: 10px; }
+        .robot-input-area input { flex: 1; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 25px; font-size: 0.95rem; outline: none; }
+        .robot-input-area input:focus { border-color: #667eea; }
+        .robot-input-area button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: 600; }
+        .robot-input-area button:hover { transform: scale(1.05); }
+        .robot-typing { padding: 10px 20px; background: white; display: none; gap: 5px; }
+        .robot-typing span { width: 8px; height: 8px; background: #667eea; border-radius: 50%; animation: typing 1.4s infinite; }
+        .robot-typing span:nth-child(2) { animation-delay: 0.2s; }
+        .robot-typing span:nth-child(3) { animation-delay: 0.4s; }
+        .robot-footer { padding: 12px 20px; background: #f8f9fa; border-top: 1px solid #e0e0e0; font-size: 0.8rem; color: #999; }
+        @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.7; } 30% { transform: translateY(-10px); opacity: 1; } }
+        @media (max-width: 768px) { .robot-panel { width: calc(100% - 20px); height: 80vh; bottom: 100px; right: 10px; } .robot-btn { bottom: 20px; right: 20px; } .robot-text { display: none; } .lang-switcher { top: 10px; right: 10px; } }
+    </style>
+</head>
+<body>
+    <div class="lang-switcher">
+        <button class="lang-btn active" onclick="switchLang('zh')" id="langZh">中文</button>
+        <button class="lang-btn" onclick="switchLang('en')" id="langEn">English</button>
+    </div>
+    <div class="container">
+        <header>
+            <h1 id="pageTitle">🌴 海南自由贸易港政策库</h1>
+            <p id="pageSubtitle">一站式查询海南自贸港核心政策及解读</p>
+            <div class="stats">
+                <div class="stat-item"><span class="number" id="totalPolicies">60</span><span class="label" id="labelPolicies">核心政策</span></div>
+                <div class="stat-item"><span class="number">8</span><span class="label" id="labelCategories">政策类别</span></div>
+                <div class="stat-item"><span class="number">100%</span><span class="label" id="labelOfficial">官方来源</span></div>
+            </div>
+        </header>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="搜索政策关键词...">
+            <button onclick="searchPolicies()">🔍 <span id="btnSearch">搜索</span></button>
+        </div>
+        <div class="category-tabs" id="categoryTabs"></div>
+        <div class="policy-grid" id="policyGrid"></div>
+    </div>
+    <div class="robot-btn" id="robotBtn" onclick="toggleRobot()">
+        <span>🤖</span><span class="robot-text" id="robotBtnText">政策助手</span>
+    </div>
+    <div class="robot-panel" id="robotPanel">
+        <div class="robot-header">
+            <div class="robot-title"><span>🤖</span><span id="robotTitle">海南自贸港政策 AI 助手</span></div>
+            <button class="robot-close" onclick="toggleRobot()">&times;</button>
+        </div>
+        <div class="robot-chat" id="robotChat"></div>
+        <div class="robot-input-area">
+            <input type="text" id="robotInput" placeholder="输入您的问题..." onkeypress="if(event.key==='Enter')sendRobotMessage()">
+            <button onclick="sendRobotMessage()" id="robotSendBtn">发送</button>
+        </div>
+        <div class="robot-typing" id="robotTyping"><span></span><span></span><span></span></div>
+        <div class="robot-footer"><p id="robotDisclaimer">⚠️ <strong>免责声明</strong>：本助手由 AI 驱动，仅供参考，不构成法律或税务建议。</p></div>
+    </div>
+    <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+        <div class="modal">
+            <div class="modal-header">
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+                <span class="category-tag" id="modalCategory"></span>
+                <h2 id="modalTitle"></h2>
+            </div>
+            <div class="modal-body">
+                <div class="content-section"><h3>📋 <span id="labelContent">政策内容</span></h3><div id="modalContent"></div></div>
+                <div class="content-section"><h3>💡 <span id="labelInterpretation">政策解读</span></h3><div id="modalInterpretation"></div></div>
+                <div class="highlight-box" id="modalHighlight"><strong>🎯 <span id="labelHighlight">核心要点：</span></strong><span id="modalHighlightText"></span></div>
+                <div class="content-section" id="modalLinkSection"><h3>🔗 <span id="labelLink">政策原文</span></h3><a id="modalPolicyLink" href="#" target="_blank" class="policy-link-btn"><span>📄 <span id="btnViewPolicy">查看官方政策原文</span></span><span>→</span></a></div>
+                <div class="content-section" id="modalQuestionsSection"><h3>💬 <span id="labelQuestions">相关问题</span></h3><div id="modalRelatedQuestions" class="related-questions-list"></div></div>
+            </div>
+            <div class="modal-footer"><span id="labelSource">来源：</span><a href="https://www.hnftp.gov.cn" target="_blank" id="modalSourceLink">海南自由贸易港官方网站</a></div>
+        </div>
+    </div>
+    <script src="policies-data.js" id="policies-script"></script>
+    <script>
+        // Global variables
+        let currentLang = 'zh';
+        let currentCategory = 'all';
+        let searchQuery = '';
+        let isRobotOpen = false;
+        
+        // Force reload policies-data.js with timestamp to avoid cache
+        (function() {
+            const script = document.getElementById('policies-script');
+            if (script) {
+                script.src = 'policies-data.js?t=' + Date.now();
+            }
+        })();
+
+        // Translations
+        const t = {
+            zh: {
+                pageTitle: '🌴 海南自由贸易港政策库', pageSubtitle: '一站式查询海南自贸港核心政策及解读',
+                labelPolicies: '核心政策', labelCategories: '政策类别', labelOfficial: '官方来源',
+                searchPlaceholder: '搜索政策关键词...', btnSearch: '搜索',
+                robotBtnText: '政策助手', robotTitle: '海南自贸港政策 AI 助手', btnSend: '发送', inputPlaceholder: '输入您的问题...',
+                labelContent: '政策内容', labelInterpretation: '政策解读', labelHighlight: '核心要点：',
+                labelLink: '政策原文', btnViewPolicy: '查看官方政策原文（核心政策 60 条）',
+                labelQuestions: '相关问题', labelSource: '来源：', clickForDetails: '点击查看详情',
+                modalDate: '更新日期：2026-02-21',
+                robotDisclaimer: '⚠️ <strong>免责声明</strong>：本助手由 AI 驱动，基于海南自由贸易港公开政策信息整理，仅供参考，不构成法律或税务建议。具体政策执行以官方最新文件为准。',
+                robotGreeting: '您好！我是海南自贸港政策 AI 助手 🌴<br><br>我可以帮您：<br>• 解答政策疑问<br>• 查询适用政策<br>• 对比政策差异<br>• 提供申报建议<br><br>请问有什么可以帮您？',
+                modalSourceLink: '海南自由贸易港官方网站',
+                categories: {all:'全部',tax:'税收优惠',trade:'贸易自由',investment:'投资自由',finance:'金融开放',personnel:'人员流动',transport:'运输自由',data:'数据安全',industry:'产业发展'}
+            },
+            en: {
+                pageTitle: '🌴 Hainan FTP Policy Database', pageSubtitle: 'One-stop query for Hainan FTP core policies and interpretations',
+                labelPolicies: 'Core Policies', labelCategories: 'Categories', labelOfficial: 'Official Source',
+                searchPlaceholder: 'Search policies...', btnSearch: 'Search',
+                robotBtnText: 'Policy Assistant', robotTitle: 'Hainan FTP Policy AI Assistant', btnSend: 'Send', inputPlaceholder: 'Type your question...',
+                labelContent: 'Policy Content', labelInterpretation: 'Policy Interpretation', labelHighlight: 'Key Points:',
+                labelLink: 'Official Policy Document', btnViewPolicy: 'View Official Policy (60 Core Policies)',
+                labelQuestions: 'Related Questions', labelSource: 'Source:', clickForDetails: 'Click for details',
+                modalDate: 'Updated: 2026-02-21',
+                robotDisclaimer: '⚠️ <strong>Disclaimer</strong>: This assistant is AI-powered, based on publicly available Hainan FTP policy information, for reference only, does not constitute legal or tax advice. Please consult official sources for policy implementation.',
+                robotGreeting: 'Hello! I\'m your Hainan FTP Policy AI Assistant 🌴<br><br>I can help you:<br>• Answer policy questions<br>• Find applicable policies<br>• Compare policies<br>• Provide application advice<br><br>How can I help you?',
+                modalSourceLink: 'Hainan Free Trade Port Official Website',
+                categories: {all:'All',tax:'Tax Incentives',trade:'Trade Freedom',investment:'Investment Freedom',finance:'Financial Opening-up',personnel:'Personnel Mobility',transport:'Transport Freedom',data:'Data Security',industry:'Industry Development'}
+            }
+        };
+
+        // Language switch
+        function switchLang(lang) {
+            currentLang = lang;
+            document.getElementById('langZh').classList.toggle('active', lang==='zh');
+            document.getElementById('langEn').classList.toggle('active', lang==='en');
+            console.log('🌐 Switch to:', lang);
+            
+            const tr = t[lang];
+            document.getElementById('pageTitle').innerHTML = tr.pageTitle;
+            document.getElementById('pageSubtitle').textContent = tr.pageSubtitle;
+            document.getElementById('labelPolicies').textContent = tr.labelPolicies;
+            document.getElementById('labelCategories').textContent = tr.labelCategories;
+            document.getElementById('labelOfficial').textContent = tr.labelOfficial;
+            document.getElementById('searchInput').placeholder = tr.searchPlaceholder;
+            document.getElementById('btnSearch').textContent = tr.btnSearch;
+            document.getElementById('robotBtnText').textContent = tr.robotBtnText;
+            document.getElementById('robotTitle').textContent = tr.robotTitle;
+            document.getElementById('robotInput').placeholder = tr.inputPlaceholder;
+            document.getElementById('robotSendBtn').textContent = tr.btnSend;
+            document.getElementById('labelContent').textContent = tr.labelContent;
+            document.getElementById('labelInterpretation').textContent = tr.labelInterpretation;
+            document.getElementById('labelHighlight').textContent = tr.labelHighlight;
+            document.getElementById('labelLink').textContent = tr.labelLink;
+            document.getElementById('btnViewPolicy').textContent = tr.btnViewPolicy;
+            document.getElementById('labelQuestions').textContent = tr.labelQuestions;
+            document.getElementById('labelSource').textContent = tr.labelSource;
+            document.getElementById('modalSourceLink').textContent = tr.modalSourceLink;
+            document.getElementById('robotDisclaimer').innerHTML = tr.robotDisclaimer;
+            // Update robot greeting if panel is open
+            const chat = document.getElementById('robotChat');
+            if (chat.children.length === 0) {
+                addBotMessage(tr.robotGreeting);
+            }
+            renderCategories();
+            renderPolicies();
+        }
+
+        // Render categories
+        function renderCategories() {
+            const tabs = document.getElementById('categoryTabs');
+            const tr = t[currentLang].categories;
+            tabs.innerHTML = Object.entries(tr).map(([key, val]) => 
+                `<div class="category-tab ${key==='all'?'active':''}" data-category="${key}">${val}</div>`
+            ).join('');
+            tabs.querySelectorAll('.category-tab').forEach(tab => {
+                tab.onclick = function() {
+                    tabs.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentCategory = this.dataset.category;
+                    renderPolicies();
+                };
+            });
+        }
+
+        // Render policies
+        function renderPolicies() {
+            const grid = document.getElementById('policyGrid');
+            let allData = (typeof allPolicies !== 'undefined' ? allPolicies : []);
+            console.log('📋 renderPolicies - Lang:', currentLang, 'Total:', allData.length);
+            
+            let filtered = [...allData];
+            if (currentCategory !== 'all') filtered = filtered.filter(p => p.category === currentCategory);
+            if (searchQuery) filtered = filtered.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.summary.toLowerCase().includes(searchQuery.toLowerCase()));
+            document.getElementById('totalPolicies').textContent = filtered.length;
+            if (filtered.length === 0) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:white;padding:60px;"><h2>😕 No policies found</h2></div>'; return; }
+            
+            grid.innerHTML = filtered.map(p => {
+                const isEn = currentLang === 'en';
+                const cat = isEn && p.categoryNameEn ? p.categoryNameEn : p.categoryName;
+                const title = isEn && p.titleEn ? p.titleEn : p.title;
+                const summary = isEn && p.summaryEn ? p.summaryEn : p.summary;
+                return `<div class="policy-card" data-id="${p.id}" onclick="handlePolicyClick(${p.id})"><span class="category">${cat}</span><h3>${title}</h3><p>${summary}</p><div class="meta"><span>${t[currentLang].clickForDetails}</span><span class="arrow">→</span></div></div>`;
+            }).join('');
+            console.log('✅ Rendered', filtered.length, 'policies');
+        }
+
+        // Handle policy click - GLOBAL FUNCTION
+        window.handlePolicyClick = function(id) {
+            console.log('Clicked policy ID:', id);
+            openModal(id);
+        };
+
+        // Search
+        function searchPolicies() { searchQuery = document.getElementById('searchInput').value.trim(); renderPolicies(); }
+        document.getElementById('searchInput').onkeypress = function(e) { if(e.key==='Enter') searchPolicies(); };
+
+        // Modal functions
+        function openModal(id) {
+            // Use allPolicies or policies
+            const allPol = (typeof allPolicies !== 'undefined' ? allPolicies : (typeof policies !== 'undefined' ? policies : []));
+            const p = allPol.find(x => x.id === id);
+            if (!p) { console.error('Policy not found:', id); return; }
+            const isEn = currentLang === 'en';
+            console.log('Opening policy', id, 'Lang:', isEn ? 'EN' : 'ZH');
+            console.log('Title EN:', p.titleEn ? 'exists' : 'missing');
+            console.log('Content EN:', p.contentEn ? 'exists' : 'missing');
+            document.getElementById('modalCategory').textContent = isEn && p.categoryNameEn ? p.categoryNameEn : p.categoryName;
+            document.getElementById('modalTitle').textContent = isEn && p.titleEn ? p.titleEn : p.title;
+            document.getElementById('modalContent').textContent = isEn && p.contentEn ? p.contentEn : p.content;
+            document.getElementById('modalInterpretation').textContent = isEn && p.interpretationEn ? p.interpretationEn : p.interpretation;
+            document.getElementById('modalHighlightText').textContent = isEn && p.highlightEn ? p.highlightEn : p.highlight;
+            document.getElementById('modalPolicyLink').href = p.link;
+            document.getElementById('modalLinkSection').style.display = 'block';
+            if (p.relatedQuestions && p.relatedQuestions.length > 0) {
+                document.getElementById('modalRelatedQuestions').innerHTML = p.relatedQuestions.map(q => {
+                    const txt = typeof q === 'object' ? (isEn ? q.en : q.zh) : q;
+                    const qForRobot = typeof q === 'object' ? (isEn ? q.en : q.zh) : q;
+                    return `<div class="question-item" onclick="askRobot('${qForRobot.replace(/'/g,"\\'")}')">${txt}</div>`;
+                }).join('');
+                document.getElementById('modalQuestionsSection').style.display = 'block';
+            } else {
+                document.getElementById('modalQuestionsSection').style.display = 'none';
+            }
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); }
+
+        // Robot functions
+        function toggleRobot() {
+            isRobotOpen = !isRobotOpen;
+            document.getElementById('robotPanel').classList.toggle('active', isRobotOpen);
+            if (isRobotOpen && document.getElementById('robotChat').children.length === 0) {
+                addBotMessage(t[currentLang].robotGreeting);
+            }
+        }
+
+        function addBotMessage(html) {
+            const chat = document.getElementById('robotChat');
+            chat.innerHTML += `<div class="robot-message bot"><div class="message-content">${html}</div></div>`;
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function addUserMessage(text) {
+            const chat = document.getElementById('robotChat');
+            chat.innerHTML += `<div class="robot-message user"><div class="message-content">${text}</div></div>`;
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        async function sendRobotMessage() {
+            const input = document.getElementById('robotInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+            addUserMessage(msg);
+            input.value = '';
+            document.getElementById('robotTyping').style.display = 'flex';
+            document.getElementById('robotSendBtn').disabled = true;
+            
+            try {
+                // Use streaming for better UX
+                const res = await fetch('/api/chat', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({message: msg, stream: true}) 
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+                
+                // Create a new message div for streaming
+                const chat = document.getElementById('robotChat');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'robot-message bot';
+                const messageId = 'msg-' + Date.now();
+                messageDiv.id = messageId;
+                messageDiv.innerHTML = '<div class="message-content"></div>';
+                chat.appendChild(messageDiv);
+                chat.scrollTop = chat.scrollHeight;
+                
+                const contentDiv = messageDiv.querySelector('.message-content');
+                let fullContent = '';
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                
+                // Slower streaming speed
+                const STREAM_DELAY = 50; // ms between each chunk
+                
+                document.getElementById('robotTyping').style.display = 'none';
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data:')) {
+                            try {
+                                const data = JSON.parse(line.slice(5).trim());
+                                
+                                if (data.error) {
+                                    contentDiv.innerHTML = '❌ Error: ' + data.error;
+                                    break;
+                                }
+                                
+                                if (data.done) {
+                                    // Streaming complete, process final message
+                                    fullContent = data.fullMessage || fullContent;
+                                    // Parse Markdown and make questions clickable
+                                    let html = fullContent;
+                                    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+                                    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+                                    html = html.replace(/---/g, '<hr class="chat-hr">');
+                                    html = html.replace(/\n/g, '<br>');
+                                    
+                                    // Make related questions clickable
+                                    const parts = html.split('<hr class="chat-hr">');
+                                    if (parts.length >= 2) {
+                                        const lastPart = parts[parts.length - 1];
+                                        if (lastPart.includes('💡') || lastPart.includes('您可能还想了解') || lastPart.includes('You may also want to know')) {
+                                            // Match both with <br> and without (last question)
+                                            let questionsHtml = lastPart.replace(/• ([^<]+)(<br>)?/g, function(match, question) {
+                                                if (!question || question.trim() === '') return match;
+                                                return '<div class="suggested-question" onclick="askRobot(\'' + question.replace(/'/g, "\\'") + '\')">• ' + question + '</div>';
+                                            });
+                                            parts[parts.length - 1] = questionsHtml;
+                                            html = parts.join('<hr class="chat-hr">');
+                                        }
+                                    }
+                                    
+                                    // Add action buttons - use data attributes instead of onclick strings
+                                    contentDiv.innerHTML = html;
+                                    
+                                    // Add action buttons after HTML is set
+                                    const actionsDiv = document.createElement('div');
+                                    actionsDiv.className = 'message-actions';
+                                    actionsDiv.innerHTML = `
+                                        <button class="action-btn" title="Copy">📋 复制</button>
+                                        <button class="action-btn" title="Helpful">👍 有用</button>
+                                        <button class="action-btn" title="Not helpful">👎 需改进</button>
+                                    `;
+                                    
+                                    // Add event listeners
+                                    const buttons = actionsDiv.querySelectorAll('.action-btn');
+                                    buttons[0].onclick = () => copyMessage(messageId);
+                                    buttons[1].onclick = () => voteMessage(messageId, 'up');
+                                    buttons[2].onclick = () => voteMessage(messageId, 'down');
+                                    
+                                    contentDiv.appendChild(actionsDiv);
+                                    // Remove cursor after complete
+                                    const cursor = contentDiv.querySelector('.typing-cursor');
+                                    if (cursor) cursor.remove();
+                                } else if (data.content) {
+                                    // Append streaming content with delay
+                                    await new Promise(r => setTimeout(r, STREAM_DELAY));
+                                    fullContent += data.content;
+                                    // Simple real-time rendering (will be replaced with full HTML at end)
+                                    let displayContent = fullContent
+                                        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                                        .replace(/\n/g, '<br>');
+                                    contentDiv.innerHTML = displayContent + '<span class="typing-cursor">▊</span>';
+                                }
+                                
+                                chat.scrollTop = chat.scrollHeight;
+                            } catch (e) {
+                                console.error('Parse error:', e);
+                            }
+                        }
+                    }
+                }
+                
+                document.getElementById('robotSendBtn').disabled = false;
+                
+            } catch (e) {
+                document.getElementById('robotTyping').style.display = 'none';
+                document.getElementById('robotSendBtn').disabled = false;
+                addBotMessage('❌ Network error: ' + e.message);
+            }
+        }
+
+        function askRobot(q) {
+            // Close modal if open
+            closeModal();
+            // If robot is not open, open it first
+            if (!isRobotOpen) {
+                toggleRobot();
+            }
+            // Small delay to ensure robot is open before sending
+            setTimeout(() => {
+                document.getElementById('robotInput').value = q.trim();
+                sendRobotMessage();
+            }, 100);
+        }
+
+        // Get current/last user question for feedback context
+        function getLastUserQuestion() {
+            const userMessages = document.querySelectorAll('.robot-message.user');
+            if (userMessages.length === 0) return '';
+            return userMessages[userMessages.length - 1].innerText.trim();
+        }
+
+        // Copy message to clipboard - copy from start to end of references (exclude related questions)
+        async function copyMessage(messageId) {
+            console.log('Copy clicked, messageId:', messageId);
+            const msgDiv = document.getElementById(messageId);
+            if (!msgDiv) {
+                console.error('Message div not found:', messageId);
+                return;
+            }
+            
+            // Get text content without HTML tags
+            const contentDiv = msgDiv.querySelector('.message-content');
+            if (!contentDiv) {
+                console.error('Content div not found');
+                return;
+            }
+            
+            const fullText = contentDiv.innerText;
+            const question = getLastUserQuestion();
+            
+            // Extract from start to end of references (exclude related questions after 💡)
+            let textToCopy = fullText;
+            const cutIndex = fullText.indexOf('💡');
+            
+            if (cutIndex !== -1) {
+                // Cut off everything from 💡 onwards (related questions)
+                textToCopy = fullText.substring(0, cutIndex).trim();
+            }
+            
+            console.log('Copying (excluding related questions):', textToCopy.substring(0, 100), '...');
+            
+            try {
+                // Try modern clipboard API first
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(textToCopy);
+                    console.log('Copy successful (modern API)');
+                } else {
+                    // Fallback for older browsers or non-HTTPS
+                    const textarea = document.createElement('textarea');
+                    textarea.value = textToCopy;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    textarea.style.left = '-9999px';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    try {
+                        document.execCommand('copy');
+                        console.log('Copy successful (execCommand fallback)');
+                    } catch (e) {
+                        throw new Error('execCommand also failed');
+                    }
+                    document.body.removeChild(textarea);
+                }
+                
+                // Send feedback to backend
+                fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        type: 'copy',
+                        messageId: messageId,
+                        question: question
+                    })
+                }).catch(e => console.error('Feedback error:', e));
+                
+                // Show success feedback
+                const btn = msgDiv.querySelector('.action-btn:first-child');
+                if (btn) {
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '✅ 已复制';
+                    btn.style.background = '#4CAF50';
+                    btn.style.color = 'white';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.style.background = '';
+                        btn.style.color = '';
+                    }, 2000);
+                }
+            } catch (err) {
+                console.error('Copy failed:', err);
+                alert('复制失败，请手动复制');
+            }
+        }
+
+        // Vote message (up or down)
+        async function voteMessage(messageId, type) {
+            const msgDiv = document.getElementById(messageId);
+            if (!msgDiv) return;
+            
+            const upBtn = msgDiv.querySelector('.action-btn:nth-child(2)');
+            const downBtn = msgDiv.querySelector('.action-btn:nth-child(3)');
+            const question = getLastUserQuestion();
+            
+            // Toggle vote
+            if (type === 'up') {
+                if (upBtn.classList.contains('voted')) {
+                    upBtn.classList.remove('voted');
+                    upBtn.innerHTML = '👍 有用';
+                    // Send unvote to backend
+                    fetch('/api/feedback', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            type: 'unvote',
+                            messageId: messageId,
+                            question: question
+                        })
+                    }).catch(e => console.error('Feedback error:', e));
+                } else {
+                    upBtn.classList.add('voted');
+                    upBtn.innerHTML = '✅ 已点赞';
+                    downBtn.classList.remove('voted');
+                    downBtn.innerHTML = '👎 需改进';
+                    // Send vote to backend
+                    fetch('/api/feedback', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            type: 'up',
+                            messageId: messageId,
+                            question: question
+                        })
+                    }).catch(e => console.error('Feedback error:', e));
+                }
+            } else if (type === 'down') {
+                if (downBtn.classList.contains('voted')) {
+                    downBtn.classList.remove('voted');
+                    downBtn.innerHTML = '👎 需改进';
+                    // Send unvote to backend
+                    fetch('/api/feedback', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            type: 'unvote',
+                            messageId: messageId,
+                            question: question
+                        })
+                    }).catch(e => console.error('Feedback error:', e));
+                } else {
+                    downBtn.classList.add('voted');
+                    downBtn.innerHTML = '✅ 已反馈';
+                    upBtn.classList.remove('voted');
+                    upBtn.innerHTML = '👍 有用';
+                    // Send vote to backend
+                    fetch('/api/feedback', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            type: 'down',
+                            messageId: messageId,
+                            question: question
+                        })
+                    }).catch(e => console.error('Feedback error:', e));
+                }
+            }
+        }
+
+        // Detect question language and set AI language context
+        function detectLanguage(text) {
+            // Simple detection: if contains Chinese characters, it's Chinese
+            return /[\u4e00-\u9fa5]/.test(text) ? 'zh' : 'en';
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, policies count:', typeof policies !== 'undefined' ? policies.length : 'undefined');
+            renderCategories();
+            renderPolicies();
+        });
+    </script>
+</body>
+</html>
