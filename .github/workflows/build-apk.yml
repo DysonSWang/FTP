@@ -34,6 +34,10 @@ jobs:
 
     - name: Sync Capacitor
       run: |
+        mkdir -p www
+        cp index.html www/
+        cp policies-data.js www/
+        cp knowledge-base.js www/
         npx cap sync android
 
     - name: Build APK
