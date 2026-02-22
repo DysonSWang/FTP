@@ -94,7 +94,6 @@ jobs:
     - name: Update Gradle Wrapper
       run: |
         cd android
-        # 使用兼容的 Gradle 版本
         sed -i 's/distributionUrl=.*/distributionUrl=https\:\/\/services.gradle.org\/distributions\/gradle-8.0.2-all.zip/' gradle/wrapper/gradle-wrapper.properties
         cat gradle/wrapper/gradle-wrapper.properties
 
@@ -102,11 +101,19 @@ jobs:
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon --stacktrace --info 2>&1 | tail -200
+        ./gradlew assembleDebug --no-daemon
+        echo "=== 查找生成的 APK ==="
+        find . -name "*.apk" -type f
+        echo "=== 检查 app/build/outputs/apk/ 目录 ==="
+        ls -la app/build/outputs/apk/debug/ || echo "目录不存在"
+        echo "=== 复制 APK 到工作区根目录 ==="
+        cp app/build/outputs/apk/debug/app-debug.apk ./app-debug.apk || echo "复制失败"
+        ls -la *.apk || echo "APK 文件不存在"
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: hainan-ftp-policy-app
-        path: android/app/build/outputs/apk/debug/app-debug.apk
+        path: android/app-debug.apk
         retention-days: 30
+        if-no-files-found: error
