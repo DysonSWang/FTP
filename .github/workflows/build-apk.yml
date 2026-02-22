@@ -94,7 +94,7 @@ jobs:
     - name: Update Gradle Wrapper
       run: |
         cd android
-        sed -i 's/distributionUrl=.*/distributionUrl=https\:\/\/services.gradle.org\/distributions\/gradle-8.0.2-all.zip/' gradle/wrapper/gradle-wrapper.properties
+        sed -i 's/distributionUrl=.*/distributionUrl=https\:\/\/services.gradle.org\/distributions\/gradle-8.13-bin.zip/' gradle/wrapper/gradle-wrapper.properties
         cat gradle/wrapper/gradle-wrapper.properties
 
     - name: Build APK
