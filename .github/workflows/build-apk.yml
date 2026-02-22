@@ -38,7 +38,7 @@ jobs:
 
     - name: Initialize Capacitor
       run: |
-        cat > capacitor.config.json << EOF
+        cat > capacitor.config.json << 'EOF'
         {
           "appId": "com.hainan.ftp.policy",
           "appName": "海南自贸港政策库",
@@ -66,67 +66,39 @@ jobs:
         cd android
         echo "=== 开始修复 Java 版本 ==="
         
-        # 显示原始内容（用于调试）
+        # 显示原始内容
         echo "=== 原始 app/build.gradle Java 配置 ==="
         grep -n "sourceCompatibility\|targetCompatibility\|VERSION_" app/build.gradle || echo "未找到相关配置"
         
-        # 方式 1: 直接写入 compileOptions 块
-        cat > /tmp/compile_options.txt << 'GRADLE'
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-GRADLE
-        
-        # 检查是否已有 compileOptions，有则替换，无则添加
-        if grep -q "compileOptions" app/build.gradle; then
-          echo "发现 compileOptions，正在替换..."
-          # 删除旧的 compileOptions 块
-          sed -i '/compileOptions {/,/}/d' app/build.gradle
-        fi
-        
-        # 在 android 块内添加 compileOptions（在 defaultConfig 之后）
-        if grep -q "defaultConfig {" app/build.gradle; then
-          echo "在 defaultConfig 后添加 compileOptions..."
-          sed -i '/defaultConfig {/,/}/{ /}/a\
-\    compileOptions {\
-        sourceCompatibility JavaVersion.VERSION_17\
-        targetCompatibility JavaVersion.VERSION_17\
-    }
-          }' app/build.gradle
-        fi
-        
-        # 方式 2: 修改任何 VERSION_21 或 '21' 或 "21"
+        # 替换所有 Java 21 为 Java 17
         sed -i 's/VERSION_21/VERSION_17/g' app/build.gradle
         sed -i "s/= '21'/= '17'/g" app/build.gradle
         sed -i 's/= "21"/= "17"/g' app/build.gradle
         sed -i 's/sourceCompatibility 21/sourceCompatibility 17/g' app/build.gradle
         sed -i 's/targetCompatibility 21/targetCompatibility 17/g' app/build.gradle
         
-        # 方式 3: 修改项目级 build.gradle
+        # 修改项目级 build.gradle
         if [ -f "build.gradle" ]; then
           sed -i 's/VERSION_21/VERSION_17/g' build.gradle
           sed -i "s/= '21'/= '17'/g" build.gradle
         fi
         
-        # 方式 4: 创建/更新 gradle.properties
+        # 创建 gradle.properties
         echo "" >> gradle.properties
         echo "# Force Java 17" >> gradle.properties
         echo "org.gradle.java.home=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64" >> gradle.properties
         
-        # 验证修改结果
+        # 验证修改
         echo "=== 修改后的 Java 配置 ==="
         grep -n "sourceCompatibility\|targetCompatibility\|VERSION_" app/build.gradle || echo "未找到相关配置"
-        
-        echo "=== gradle.properties 内容 ==="
+        echo "=== gradle.properties ==="
         cat gradle.properties
 
     - name: Build APK
       run: |
         cd android
-        echo "=== 开始 Gradle 构建 ==="
         chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon --info 2>&1 | tail -100
+        ./gradlew assembleDebug --no-daemon
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
