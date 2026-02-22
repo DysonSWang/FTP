@@ -350,7 +350,11 @@
             
             try {
                 // Use streaming for better UX
-                const res = await fetch('/api/chat', { 
+                // 使用绝对路径指向服务器（APK 打包后也能访问）
+                const API_BASE = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:5173' 
+                    : 'http://120.48.16.193:5173';
+                const res = await fetch(API_BASE + '/api/chat', { 
                     method: 'POST', 
                     headers: {'Content-Type': 'application/json'}, 
                     body: JSON.stringify({message: msg, stream: true}) 

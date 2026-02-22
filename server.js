@@ -365,12 +365,15 @@ Be professional, accurate and friendly! 🌴 / 请专业、准确、友好地回
  * Chat completion endpoint - 使用智谱 AI (支持流式输出)
  */
 app.post('/api/chat', async (req, res) => {
+    console.log('📩 Chat request received:', req.body);
     try {
         const { message, history = [], stream = false } = req.body;
 
         if (!message) {
+            console.log('❌ No message in request');
             return res.status(400).json({ error: 'Message is required' });
         }
+        console.log('✅ Processing message:', message.substring(0, 50));
 
         const apiKey = process.env.ZHIPU_API_KEY;
         if (!apiKey) {
