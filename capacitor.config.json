@@ -12,7 +12,14 @@
   "android": {
     "allowMixedContent": true,
     "captureInput": true,
-    "webContentsDebuggingEnabled": true
+    "webContentsDebuggingEnabled": true,
+    "overrideUserAgent": "HainanPolicyApp/1.0.0"
+  },
+  "plugins": {
+    "WebView": {
+      "scrollEnabled": true,
+      "allowsLinkPreview": false
+    }
   },
   "plugins": {
     "SplashScreen": {
