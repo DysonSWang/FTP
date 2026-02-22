@@ -76,7 +76,7 @@ jobs:
     - name: Sync
       run: npx cap sync android
 
-    - name: Fix Java 17 AFTER sync (critical!)
+    - name: Fix ALL Java 21 References
       run: |
         cd android
         
@@ -88,48 +88,83 @@ jobs:
         org.gradle.jvmargs=-Xmx2048m
         EOF
         
-        # 2. 修复所有 build.gradle
+        # 2. 创建 settings.gradle.kts 强制 Java 17
+        cat > settings.gradle.kts << 'EOF'
+        pluginManagement {
+            repositories {
+                google()
+                gradlePluginPortal()
+                mavenCentral()
+            }
+        }
+        dependencyResolutionManagement {
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        EOF
+        
+        # 3. 修复所有 build.gradle 文件
         find . -name "build.gradle" -type f | while read file; do
+          echo "Processing: $file"
           sed -i 's/VERSION_21/VERSION_17/g' "$file"
           sed -i 's/VERSION21/VERSION17/g' "$file"
-          sed -i "s/= '21'/= '17'/g" "$file"
+          sed -i "s/= '21'/= '17'/g' "$file"
           sed -i 's/= "21"/= "17"/g' "$file"
+          sed -i 's/sourceCompatibility 21/sourceCompatibility 17/g' "$file"
+          sed -i 's/targetCompatibility 21/targetCompatibility 17/g' "$file"
         done
         
-        # 3. 【关键】直接重写 app/build.gradle 的 android 块
-        # 读取文件，找到 android { 并注入 compileOptions
+        # 4. 强制重写 app/build.gradle 的 compileOptions
         if [ -f "app/build.gradle" ]; then
-          # 创建临时文件
-          cat > /tmp/fix.gradle << 'EOFG'
-        compileOptions {
-            sourceCompatibility JavaVersion.VERSION_17
-            targetCompatibility JavaVersion.VERSION_17
-        }
-EOFG
+          # 备份原文件
+          cp app/build.gradle app/build.gradle.bak
           
-          # 检查是否已有 compileOptions
-          if grep -q "compileOptions" app/build.gradle; then
-            # 替换整个 compileOptions 块
-            perl -i -0pe 's/compileOptions\s*\{[^}]*\}/compileOptions {\n            sourceCompatibility JavaVersion.VERSION_17\n            targetCompatibility JavaVersion.VERSION_17\n        }/gs' app/build.gradle
-            echo "✓ 替换了 compileOptions"
-          else
-            # 在 android { 后插入
-            perl -i -pe 's/^android\s*\{/android {\n        compileOptions {\n            sourceCompatibility JavaVersion.VERSION_17\n            targetCompatibility JavaVersion.VERSION_17\n        }/g' app/build.gradle
-            echo "✓ 添加了 compileOptions"
-          fi
+          # 使用 awk 重写整个 android 块
+          awk '
+          BEGIN { in_android = 0; in_compile = 0 }
+          /^android\s*\{/ { 
+            in_android = 1
+            print "android {"
+            print "    compileOptions {"
+            print "        sourceCompatibility JavaVersion.VERSION_17"
+            print "        targetCompatibility JavaVersion.VERSION_17"
+            print "    }"
+            next
+          }
+          /^\s*compileOptions\s*\{/ { 
+            in_compile = 1
+            next
+          }
+          in_compile && /^\s*\}/ { 
+            in_compile = 0
+            next
+          }
+          in_compile { next }
+          { print }
+          ' app/build.gradle.bak > app/build.gradle.new
+          mv app/build.gradle.new app/build.gradle
+          
+          echo "✓ 强制重写了 app/build.gradle"
         fi
         
-        # 4. 验证
-        echo "=== 验证 app/build.gradle ==="
-        grep -A3 "compileOptions" app/build.gradle || echo "⚠️ compileOptions 未找到"
+        # 5. 验证
+        echo "=== 验证 compileOptions ==="
+        grep -A3 "compileOptions" app/build.gradle || echo "⚠️ 未找到"
         
         echo "=== 检查 Java 21 残留 ==="
-        grep -rn "21" --include="*.gradle" . | grep -i version || echo "✓ 无 Java 21"
+        grep -rn "21" --include="*.gradle" . 2>/dev/null | grep -i version || echo "✓ 无 Java 21"
 
-    - name: Build
+    - name: Build with Java 17 flags
       run: |
         cd android
-        ./gradlew assembleDebug --no-daemon
+        # 关键：通过命令行参数强制 Java 17
+        ./gradlew assembleDebug \
+          --no-daemon \
+          -Dorg.gradle.java.home=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64 \
+          -Djava.source.version=17 \
+          -Djava.target.version=17
 
     - name: Upload
       uses: actions/upload-artifact@v4
