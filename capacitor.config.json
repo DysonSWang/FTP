@@ -1,6 +1,8 @@
 {
   "appId": "com.hainan.ftp.policy",
   "appName": "海南自贸港政策库",
+  "version": "1.0.0",
+  "versionCode": 1,
   "webDir": "www",
   "bundledWebRuntime": false,
   "server": {

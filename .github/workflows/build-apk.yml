@@ -44,7 +44,30 @@ jobs:
 
     - name: Init Capacitor
       run: |
-        echo '{"appId":"com.hainan.ftp.policy","appName":"海南自贸港政策库","webDir":"www","android":{"allowMixedContent":true}}' > capacitor.config.json
+        # 从 package.json 读取版本号
+        VERSION=$(node -p "require('./package.json').version")
+        VERSION_CODE=$(node -p "require('./package.json').versionCode || 1")
+        
+        cat > capacitor.config.json << EOF
+        {
+          "appId": "com.hainan.ftp.policy",
+          "appName": "海南自贸港政策库",
+          "version": "$VERSION",
+          "versionCode": $VERSION_CODE,
+          "webDir": "www",
+          "bundledWebRuntime": false,
+          "server": {
+            "url": "http://120.48.16.193:5173",
+            "cleartext": true
+          },
+          "android": {
+            "allowMixedContent": true,
+            "captureInput": true,
+            "webContentsDebuggingEnabled": true
+          }
+        }
+        EOF
+        echo "✓ 创建 capacitor.config.json (版本：$VERSION, code: $VERSION_CODE)"
 
     - name: Add Android
       run: |
@@ -136,9 +159,9 @@ jobs:
         cd android
         ./gradlew assembleDebug --no-daemon
 
-    - name: Upload
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: hainan-ftp-policy-app
+        name: hainan-policy-v${{ fromJSON(steps.version.outputs.package-json).version }}
         path: android/app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30

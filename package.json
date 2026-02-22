@@ -1,6 +1,7 @@
 {
   "name": "hainan-policy-ai",
   "version": "1.0.0",
+  "versionCode": 1,
   "description": "海南自由贸易港政策库 - AI 问答机器人",
   "main": "server.js",
   "scripts": {
