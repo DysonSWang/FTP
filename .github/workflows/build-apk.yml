@@ -61,6 +61,18 @@ jobs:
     - name: Sync
       run: npx cap sync android
 
+    - name: Fix Java Version
+      run: |
+        cd android
+        # 修改 app/build.gradle 中的 Java 版本
+        sed -i 's/sourceCompatibility = JavaVersion\.VERSION_21/sourceCompatibility = JavaVersion.VERSION_17/g' app/build.gradle
+        sed -i 's/targetCompatibility = JavaVersion\.VERSION_21/targetCompatibility = JavaVersion.VERSION_17/g' app/build.gradle
+        sed -i 's/sourceCompatibility JavaVersion\.VERSION_21/sourceCompatibility JavaVersion.VERSION_17/g' app/build.gradle
+        sed -i 's/targetCompatibility JavaVersion\.VERSION_21/targetCompatibility JavaVersion.VERSION_17/g' app/build.gradle
+        # 确认修改
+        echo "=== Java Version Config ==="
+        grep -n "VERSION_17\|VERSION_21" app/build.gradle || echo "No VERSION found"
+
     - name: Build APK
       run: |
         cd android
