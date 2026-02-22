@@ -75,61 +75,60 @@ jobs:
     - name: Sync
       run: npx cap sync android
 
-    - name: Rewrite app/build.gradle
+    - name: Setup gradle.properties
       run: |
         cd android
-        
         cat > gradle.properties << 'EOF'
         org.gradle.java.home=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
         android.useAndroidX=true
         android.enableJetifier=true
         org.gradle.jvmargs=-Xmx2048m
         EOF
-        
-        cat > app/build.gradle << 'EOFG'
-plugins {
-    id 'com.android.application'
-}
 
-android {
-    namespace 'com.hainan.ftp.policy'
-    compileSdk 35
-
-    defaultConfig {
-        applicationId "com.hainan.ftp.policy"
-        minSdk 22
-        targetSdk 35
-        versionCode 1
-        versionName "1.0"
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+    - name: Rewrite app/build.gradle
+      run: |
+        cd android
+        echo "plugins {
+            id 'com.android.application'
         }
-        debug {
-            debuggable true
+
+        android {
+            namespace 'com.hainan.ftp.policy'
+            compileSdk 35
+
+            defaultConfig {
+                applicationId \"com.hainan.ftp.policy\"
+                minSdk 22
+                targetSdk 35
+                versionCode 1
+                versionName \"1.0\"
+            }
+
+            compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
+
+            buildTypes {
+                release {
+                    minifyEnabled false
+                    proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+                }
+                debug {
+                    debuggable true
+                }
+            }
         }
-    }
-}
 
-dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(':capacitor-android')
-    implementation 'androidx.core:core-splashscreen:1.0.1'
-    implementation 'androidx.webkit:webkit:1.9.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.11.0'
-}
-EOFG
-
-        echo "Rewrote app/build.gradle successfully"
+        dependencies {
+            implementation fileTree(dir: 'libs', include: ['*.jar'])
+            implementation project(':capacitor-android')
+            implementation 'androidx.core:core-splashscreen:1.0.1'
+            implementation 'androidx.webkit:webkit:1.9.0'
+            implementation 'androidx.appcompat:appcompat:1.6.1'
+            implementation 'com.google.android.material:material:1.11.0'
+        }" > app/build.gradle
+        echo "Rewrote app/build.gradle"
         grep -A2 "compileOptions" app/build.gradle
 
     - name: Build
