@@ -55,7 +55,7 @@ jobs:
         rm -rf android
         npx cap add android
 
-    - name: Create variables.gradle (Android 35 for VANILLA_ICE_CREAM)
+    - name: Create variables.gradle (Android 35)
       run: |
         cat > android/variables.gradle << 'EOF'
         ext {
@@ -80,25 +80,69 @@ jobs:
     - name: Sync
       run: npx cap sync android
 
-    - name: Force Java 17 in android/
+    - name: Force Java 17 in ALL build.gradle files
       run: |
         cd android
+        
+        # 1. 先列出所有 build.gradle 文件
+        echo "=== 找到所有 build.gradle 文件 ==="
+        find . -name "build.gradle" -type f
+        
+        # 2. 修复所有文件
+        echo "=== 修复所有 build.gradle 文件 ==="
+        find . -name "build.gradle" -type f | while read file; do
+          echo "处理：$file"
+          sed -i 's/VERSION_21/VERSION_17/g' "$file"
+          sed -i 's/VERSION21/VERSION17/g' "$file"
+          sed -i "s/= '21'/= '17'/g" "$file"
+          sed -i 's/= "21"/= "17"/g' "$file"
+          sed -i 's/sourceCompatibility 21/sourceCompatibility 17/g' "$file"
+          sed -i 's/targetCompatibility 21/targetCompatibility 17/g' "$file"
+          sed -i 's/sourceCompatibility JavaVersion.VERSION_21/sourceCompatibility JavaVersion.VERSION_17/g' "$file"
+          sed -i 's/targetCompatibility JavaVersion.VERSION_21/targetCompatibility JavaVersion.VERSION_17/g' "$file"
+          sed -i 's/sourceCompatibility = JavaVersion.VERSION_21/sourceCompatibility = JavaVersion.VERSION_17/g' "$file"
+          sed -i 's/targetCompatibility = JavaVersion.VERSION_21/targetCompatibility = JavaVersion.VERSION_17/g' "$file"
+        done
+        
+        # 3. 检查 app/build.gradle 具体内容
+        echo "=== 检查 app/build.gradle 中的 compileOptions ==="
+        if [ -f "app/build.gradle" ]; then
+          grep -A5 "compileOptions" app/build.gradle || echo "未找到 compileOptions"
+        fi
+        
+        # 4. 强制写入 app/build.gradle 的 compileOptions
+        echo "=== 强制修复 app/build.gradle ==="
+        if [ -f "app/build.gradle" ]; then
+          # 如果已有 compileOptions，替换它
+          if grep -q "compileOptions" app/build.gradle; then
+            sed -i '/compileOptions {/,/}/c\
+        compileOptions {\
+            sourceCompatibility JavaVersion.VERSION_17\
+            targetCompatibility JavaVersion.VERSION_17\
+        }' app/build.gradle
+            echo "✓ 替换了 compileOptions"
+          else
+            # 在 android {} 块内添加 compileOptions
+            sed -i '/android {/a\
+        compileOptions {\
+            sourceCompatibility JavaVersion.VERSION_17\
+            targetCompatibility JavaVersion.VERSION_17\
+        }' app/build.gradle
+            echo "✓ 添加了 compileOptions"
+          fi
+        fi
+        
+        # 5. 验证
+        echo "=== 检查 Java 21 残留 ==="
+        grep -rn "21" --include="*.gradle" . | grep -i version || echo "✓ 未发现 Java 21"
+        
+        # 6. gradle.properties
         cat > gradle.properties << 'EOF'
         org.gradle.java.home=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
         android.useAndroidX=true
         android.enableJetifier=true
         org.gradle.jvmargs=-Xmx2048m
         EOF
-        
-        find . -name "build.gradle" -type f | while read file; do
-          sed -i 's/VERSION_21/VERSION_17/g' "$file"
-          sed -i 's/VERSION21/VERSION17/g' "$file"
-          sed -i "s/= '21'/= '17'/g" "$file"
-          sed -i 's/= "21"/= "17"/g' "$file"
-        done
-        
-        echo "=== 检查 Java 21 残留 ==="
-        grep -r "VERSION_21\|VERSION21" --include="*.gradle" . && echo "⚠️ 发现 Java 21!" || echo "✓ 无 Java 21"
 
     - name: Build
       run: |
