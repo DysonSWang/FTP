@@ -64,18 +64,44 @@ jobs:
     - name: Fix Java Version
       run: |
         cd android
-        # 修改 app/build.gradle 中的 Java 版本
-        sed -i 's/sourceCompatibility = JavaVersion\.VERSION_21/sourceCompatibility = JavaVersion.VERSION_17/g' app/build.gradle
-        sed -i 's/targetCompatibility = JavaVersion\.VERSION_21/targetCompatibility = JavaVersion.VERSION_17/g' app/build.gradle
-        sed -i 's/sourceCompatibility JavaVersion\.VERSION_21/sourceCompatibility JavaVersion.VERSION_17/g' app/build.gradle
-        sed -i 's/targetCompatibility JavaVersion\.VERSION_21/targetCompatibility JavaVersion.VERSION_17/g' app/build.gradle
-        # 确认修改
-        echo "=== Java Version Config ==="
-        grep -n "VERSION_17\|VERSION_21" app/build.gradle || echo "No VERSION found"
+        echo "=== Fixing Java Version ==="
+        
+        # 方式 1: 修改 app/build.gradle - 多种格式
+        if [ -f "app/build.gradle" ]; then
+          # 格式 1: sourceCompatibility = JavaVersion.VERSION_21
+          sed -i 's/VERSION_21/VERSION_17/g' app/build.gradle
+          # 格式 2: sourceCompatibility = '21' 或 "21"
+          sed -i "s/= '21'/= '17'/g" app/build.gradle
+          sed -i 's/= "21"/= "17"/g' app/build.gradle
+          # 格式 3: sourceCompatibility 21
+          sed -i 's/sourceCompatibility 21/sourceCompatibility 17/g' app/build.gradle
+          sed -i 's/targetCompatibility 21/targetCompatibility 17/g' app/build.gradle
+          echo "✅ app/build.gradle 已修改"
+        fi
+        
+        # 方式 2: 修改 build.gradle (项目级)
+        if [ -f "build.gradle" ]; then
+          sed -i 's/VERSION_21/VERSION_17/g' build.gradle
+          sed -i "s/= '21'/= '17'/g" build.gradle
+          echo "✅ build.gradle 已修改"
+        fi
+        
+        # 方式 3: 创建 gradle.properties 强制指定
+        cat >> gradle.properties << EOF
+        
+        # Force Java 17
+        org.gradle.java.home=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+        EOF
+        echo "✅ gradle.properties 已更新"
+        
+        # 验证修改
+        echo "=== 验证 Java 配置 ==="
+        grep -r "VERSION_17\|'17'\|\"17\"" app/build.gradle build.gradle 2>/dev/null | head -5 || echo "未找到 Java 17 配置"
 
     - name: Build APK
       run: |
         cd android
+        echo "=== 开始 Gradle 构建 ==="
         chmod +x gradlew
         ./gradlew assembleDebug --no-daemon
 
