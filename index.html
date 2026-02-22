@@ -29,16 +29,75 @@
             -webkit-overflow-scrolling: touch;
         }
         .container { max-width: 1200px; margin: 0 auto; }
-        header { text-align: center; color: white; padding: 40px 20px; }
-        header h1 { font-size: 2.5rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-        header p { font-size: 1.1rem; opacity: 0.9; }
-        .lang-switcher { position: fixed; top: 20px; right: 20px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 25px; padding: 5px; display: flex; gap: 5px; z-index: 1000; }
-        .lang-btn { background: transparent; border: 2px solid rgba(255,255,255,0.3); color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s; }
-        .lang-btn:hover, .lang-btn.active { background: white; color: #667eea; border-color: white; }
-        .search-box { background: white; border-radius: 50px; padding: 15px 30px; display: flex; align-items: center; box-shadow: 0 10px 40px rgba(0,0,0,0.2); margin: 30px auto; max-width: 600px; }
-        .search-box input { flex: 1; border: none; outline: none; font-size: 1rem; padding: 10px; }
-        .search-box button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 30px; border-radius: 25px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; }
-        .search-box button:hover { transform: scale(1.05); }
+        header { text-align: center; color: white; padding: 20px 20px 30px; }
+        header h1 { font-size: 1.8rem; margin-bottom: 8px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        header p { font-size: 0.95rem; opacity: 0.9; }
+        
+        /* 语言切换器 - 固定在顶部 */
+        .lang-switcher { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0;
+            background: rgba(102, 126, 234, 0.95); 
+            backdrop-filter: blur(10px); 
+            padding: 10px 20px; 
+            display: flex; 
+            justify-content: center;
+            gap: 10px; 
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .lang-btn { 
+            background: transparent; 
+            border: 2px solid rgba(255,255,255,0.5); 
+            color: white; 
+            padding: 6px 14px; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-size: 0.85rem; 
+            transition: all 0.3s; 
+        }
+        .lang-btn:hover, .lang-btn.active { 
+            background: white; 
+            color: #667eea; 
+            border-color: white; 
+        }
+        
+        /* 搜索框优化 - 更小更简洁 */
+        .search-box { 
+            background: white; 
+            border-radius: 25px; 
+            padding: 8px 15px; 
+            display: flex; 
+            align-items: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
+            margin: 15px auto; 
+            max-width: 500px;
+            gap: 8px;
+        }
+        .search-box input { 
+            flex: 1; 
+            border: none; 
+            outline: none; 
+            font-size: 0.9rem; 
+            padding: 8px;
+            min-width: 0;
+        }
+        .search-box button { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-size: 0.9rem; 
+            transition: transform 0.2s;
+            white-space: nowrap;
+        }
+        .search-box button:hover { 
+            transform: scale(1.05); 
+        }
         .category-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin: 30px 0; justify-content: center; }
         .category-tab { background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 25px; cursor: pointer; transition: all 0.3s; font-size: 0.95rem; }
         .category-tab:hover, .category-tab.active { background: white; color: #667eea; border-color: white; }
@@ -87,17 +146,98 @@
         .question-item:hover { background: #667eea; color: white; transform: translateX(5px); }
         .modal-footer { padding: 20px 25px; background: #f8f9fa; border-top: 1px solid #e0e0e0; display: flex; justify-content: space-between; font-size: 0.85rem; color: #999; }
         .modal-footer a { color: #667eea; text-decoration: none; }
-        .robot-btn { position: fixed; bottom: 30px; right: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 25px; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); display: flex; align-items: center; gap: 10px; transition: all 0.3s; z-index: 1500; }
-        .robot-btn:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5); }
-        .robot-panel { display: none; position: fixed; bottom: 100px; right: 30px; width: 400px; height: 600px; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 1500; flex-direction: column; overflow: hidden; touch-action: pan-y; overscroll-behavior: contain; }
+        .robot-btn { 
+            position: fixed; 
+            bottom: 20px; 
+            right: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            padding: 12px 20px; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            transition: all 0.3s; 
+            z-index: 1500;
+            font-size: 0.9rem;
+        }
+        .robot-btn:hover { 
+            transform: scale(1.05); 
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5); 
+        }
+        
+        /* 机器人面板背景蒙版 */
+        .robot-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1550;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .robot-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+        
+        /* 机器人面板 - 移动端全屏 */
+        .robot-panel { 
+            display: none; 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            right: 0;
+            top: 0;
+            background: white; 
+            z-index: 1600; 
+            flex-direction: column; 
+            overflow: hidden;
+            touch-action: pan-y; 
+            overscroll-behavior: contain;
+        }
         .robot-panel.active { display: flex; }
-        .robot-header { padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; justify-content: space-between; align-items: center; }
-        .robot-title { display: flex; align-items: center; gap: 10px; font-weight: 600; }
-        .robot-close { background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: background 0.3s; }
+        
+        .robot-header { 
+            padding: 15px 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .robot-title { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .robot-close { 
+            background: rgba(255,255,255,0.2); 
+            border: none; 
+            color: white; 
+            width: 32px; 
+            height: 32px; 
+            border-radius: 50%; 
+            cursor: pointer; 
+            font-size: 1.2rem; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            transition: background 0.3s;
+            flex-shrink: 0;
+        }
         .robot-close:hover { background: rgba(255,255,255,0.3); }
         .robot-chat { 
             flex: 1; 
-            padding: 20px; 
+            padding: 15px; 
             overflow-y: auto; 
             background: #f8f9fa; 
             -webkit-overflow-scrolling: touch;
@@ -136,7 +276,26 @@
         .robot-typing span:nth-child(3) { animation-delay: 0.4s; }
         .robot-footer { padding: 12px 20px; background: #f8f9fa; border-top: 1px solid #e0e0e0; font-size: 0.8rem; color: #999; }
         @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.7; } 30% { transform: translateY(-10px); opacity: 1; } }
-        @media (max-width: 768px) { .robot-panel { width: calc(100% - 20px); height: 80vh; bottom: 100px; right: 10px; } .robot-btn { bottom: 20px; right: 20px; } .robot-text { display: none; } .lang-switcher { top: 10px; right: 10px; } }
+        
+        /* 移动端优化 */
+        @media (max-width: 768px) { 
+            body { padding-top: 50px; }
+            header h1 { font-size: 1.5rem; }
+            header p { font-size: 0.85rem; }
+            .stats { gap: 20px; }
+            .stat-item .number { font-size: 1.5rem; }
+            .stat-item .label { font-size: 0.8rem; }
+            .search-box { padding: 6px 12px; margin: 10px auto; }
+            .search-box input { font-size: 0.85rem; padding: 6px; }
+            .search-box button { padding: 8px 16px; font-size: 0.85rem; }
+            .category-tabs { gap: 8px; margin: 20px 0; }
+            .category-tab { padding: 8px 16px; font-size: 0.85rem; }
+            .policy-grid { grid-template-columns: 1fr; gap: 15px; }
+            .policy-card { padding: 20px; }
+            .robot-btn { bottom: 15px; right: 15px; padding: 10px 16px; }
+            .robot-text { display: none; }
+            /* 移动端机器人全屏，不需要额外样式 */
+        }
     </style>
 </head>
 <body>
@@ -164,6 +323,7 @@
     <div class="robot-btn" id="robotBtn" onclick="toggleRobot()">
         <span>🤖</span><span class="robot-text" id="robotBtnText">政策助手</span>
     </div>
+    <div class="robot-overlay" id="robotOverlay" onclick="toggleRobot()"></div>
     <div class="robot-panel" id="robotPanel">
         <div class="robot-header">
             <div class="robot-title"><span>🤖</span><span id="robotTitle">海南自贸港政策 AI 助手</span></div>
@@ -363,7 +523,19 @@
         // Robot functions
         function toggleRobot() {
             isRobotOpen = !isRobotOpen;
-            document.getElementById('robotPanel').classList.toggle('active', isRobotOpen);
+            const panel = document.getElementById('robotPanel');
+            const overlay = document.getElementById('robotOverlay');
+            
+            if (isRobotOpen) {
+                panel.classList.add('active');
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';  // 禁止背景滚动
+            } else {
+                panel.classList.remove('active');
+                overlay.classList.remove('active');
+                document.body.style.overflow = 'auto';  // 恢复背景滚动
+            }
+            
             if (isRobotOpen && document.getElementById('robotChat').children.length === 0) {
                 addBotMessage(t[currentLang].robotGreeting);
             }
