@@ -102,18 +102,19 @@ jobs:
         cd android
         chmod +x gradlew
         ./gradlew assembleDebug --no-daemon
-        echo "=== 查找生成的 APK ==="
-        find . -name "*.apk" -type f
-        echo "=== 检查 app/build/outputs/apk/ 目录 ==="
-        ls -la app/build/outputs/apk/debug/ || echo "目录不存在"
-        echo "=== 复制 APK 到工作区根目录 ==="
-        cp app/build/outputs/apk/debug/app-debug.apk ./app-debug.apk || echo "复制失败"
-        ls -la *.apk || echo "APK 文件不存在"
+        echo "=== 查找所有 APK 文件 ==="
+        find . -name "*.apk" -type f -ls
+        echo "=== 创建 artifacts 目录 ==="
+        mkdir -p ../artifacts
+        echo "=== 复制所有 APK 到 artifacts ==="
+        find . -name "*debug*.apk" -type f -exec cp {} ../artifacts/ \;
+        echo "=== artifacts 目录内容 ==="
+        ls -la ../artifacts/
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: hainan-ftp-policy-app
-        path: android/app-debug.apk
+        path: artifacts/*.apk
         retention-days: 30
         if-no-files-found: error
