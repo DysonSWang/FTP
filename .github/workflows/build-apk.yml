@@ -26,8 +26,9 @@ jobs:
     - name: Setup Android
       uses: android-actions/setup-android@v3
 
-    - name: Install Capacitor
-      run: npm install @capacitor/core @capacitor/cli @capacitor/android
+    - name: Install Capacitor (Latest Stable)
+      run: |
+        npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest
 
     - name: Create www directory
       run: |
@@ -61,7 +62,7 @@ jobs:
     - name: Sync
       run: npx cap sync android
 
-    - name: Fix Java Version in android/build.gradle
+    - name: Fix Java Version
       run: |
         cd android
         echo "=== 修复项目级 build.gradle ==="
@@ -69,42 +70,39 @@ jobs:
         sed -i 's/VERSION21/VERSION17/g' build.gradle
         sed -i "s/= '21'/= '17'/g" build.gradle
         sed -i 's/= "21"/= "17"/g' build.gradle
-        cat build.gradle | grep -i "version" || true
-
-    - name: Fix Java Version in android/app/build.gradle
-      run: |
-        cd android/app
+        
         echo "=== 修复 app 级 build.gradle ==="
-        
-        # 显示原始配置
-        echo "=== 原始 Java 配置 ==="
-        grep -n "VERSION_\|sourceCompatibility\|targetCompatibility" build.gradle || echo "未找到"
-        
-        # 替换所有 Java 21 为 Java 17
+        cd app
         sed -i 's/VERSION_21/VERSION_17/g' build.gradle
         sed -i 's/VERSION21/VERSION17/g' build.gradle
         sed -i "s/= '21'/= '17'/g" build.gradle
-        sed -i 's/= "21"/= "17"/g' app/build.gradle 2>/dev/null || true
+        sed -i 's/= "21"/= "17"/g' build.gradle
         sed -i 's/sourceCompatibility 21/sourceCompatibility 17/g' build.gradle
         sed -i 's/targetCompatibility 21/targetCompatibility 17/g' build.gradle
-        
-        # 验证修改
-        echo "=== 修改后的 Java 配置 ==="
-        grep -n "VERSION_\|sourceCompatibility\|targetCompatibility" build.gradle || echo "未找到"
 
     - name: Create gradle.properties
       run: |
         cd android
-        echo "" >> gradle.properties
-        echo "org.gradle.java.home=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64" >> gradle.properties
-        echo "org.gradle.jvmargs=-Xmx2048m" >> gradle.properties
+        cat > gradle.properties << 'EOF'
+        org.gradle.java.home=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+        org.gradle.jvmargs=-Xmx2048m
+        android.useAndroidX=true
+        android.enableJetifier=true
+        EOF
         cat gradle.properties
+
+    - name: Update Gradle Wrapper
+      run: |
+        cd android
+        # 使用兼容的 Gradle 版本
+        sed -i 's/distributionUrl=.*/distributionUrl=https\:\/\/services.gradle.org\/distributions\/gradle-8.0.2-all.zip/' gradle/wrapper/gradle-wrapper.properties
+        cat gradle/wrapper/gradle-wrapper.properties
 
     - name: Build APK
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon --stacktrace
+        ./gradlew assembleDebug --no-daemon --stacktrace --info 2>&1 | tail -200
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
