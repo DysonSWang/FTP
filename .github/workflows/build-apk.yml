@@ -26,35 +26,21 @@ jobs:
     - name: Setup Android
       uses: android-actions/setup-android@v3
 
-    - name: Install Capacitor (Latest Stable)
-      run: |
-        npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest
+    - name: Install Capacitor
+      run: npm install @capacitor/core @capacitor/cli @capacitor/android
 
-    - name: Create www directory
+    - name: Create www
       run: |
         mkdir -p www
-        cp index.html www/index.html
-        cp policies-data.js www/policies-data.js
-        cp knowledge-base.js www/knowledge-base.js
+        cp index.html www/
+        cp policies-data.js www/
+        cp knowledge-base.js www/
 
-    - name: Initialize Capacitor
+    - name: Init Capacitor
       run: |
-        cat > capacitor.config.json << 'EOF'
-        {
-          "appId": "com.hainan.ftp.policy",
-          "appName": "海南自贸港政策库",
-          "webDir": "www",
-          "server": {
-            "url": "http://120.48.16.193:5173",
-            "cleartext": true
-          },
-          "android": {
-            "allowMixedContent": true
-          }
-        }
-        EOF
+        echo '{"appId":"com.hainan.ftp.policy","appName":"海南自贸港政策库","webDir":"www","android":{"allowMixedContent":true}}' > capacitor.config.json
 
-    - name: Add Android Platform
+    - name: Add Android
       run: |
         rm -rf android
         npx cap add android
@@ -62,79 +48,20 @@ jobs:
     - name: Sync
       run: npx cap sync android
 
-    - name: Fix Java Version Everywhere
+    - name: Fix Java 17
       run: |
         cd android
-        echo "=== 修复项目级 build.gradle ==="
-        sed -i 's/VERSION_21/VERSION_17/g' build.gradle
-        sed -i 's/VERSION21/VERSION17/g' build.gradle
-        sed -i "s/= '21'/= '17'/g" build.gradle
-        sed -i 's/= "21"/= "17"/g' build.gradle
-        
-        echo "=== 修复 app 级 build.gradle ==="
-        cd app
-        sed -i 's/VERSION_21/VERSION_17/g' build.gradle
-        sed -i 's/VERSION21/VERSION17/g' build.gradle
-        sed -i "s/= '21'/= '17'/g" build.gradle
-        sed -i 's/= "21"/= "17"/g' build.gradle
-        sed -i 's/sourceCompatibility 21/sourceCompatibility 17/g' build.gradle
-        sed -i 's/targetCompatibility 21/targetCompatibility 17/g' build.gradle
-        
-        echo "=== 修复 capacitor-android 模块 ==="
-        cd ../capacitor-cordova-android-plugins
-        if [ -f "build.gradle" ]; then
-          sed -i 's/VERSION_21/VERSION_17/g' build.gradle
-          sed -i 's/VERSION21/VERSION17/g' build.gradle
-          sed -i "s/= '21'/= '17'/g" build.gradle
-          sed -i 's/= "21"/= "17"/g' build.gradle
-          echo "capacitor-cordova-android-plugins build.gradle 已修复"
-        fi
-        
-        cd ../capacitor-cordova-android-plugins/cordova-lib
-        if [ -f "build.gradle" ]; then
-          sed -i 's/VERSION_21/VERSION_17/g' build.gradle
-          sed -i 's/VERSION21/VERSION17/g' build.gradle
-          sed -i "s/= '21'/= '17'/g" build.gradle
-          sed -i 's/= "21"/= "17"/g' build.gradle
-          echo "cordova-lib build.gradle 已修复"
-        fi
-        
-        echo "=== 全局搜索所有 Java 21 配置 ==="
-        cd ..
-        grep -r "VERSION_21\|VERSION21\|= '21'\|= \"21\"" --include="*.gradle" || echo "未找到 Java 21 配置"
+        echo "org.gradle.java.home=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64" >> gradle.properties
+        echo "android.useAndroidX=true" >> gradle.properties
+        sed -i 's/VERSION_21/VERSION_17/g' build.gradle app/build.gradle
+        sed -i "s/= '21'/= '17'/g" build.gradle app/build.gradle
 
-    - name: Create gradle.properties
-      run: |
-        cd android
-        cat > gradle.properties << 'EOF'
-        org.gradle.java.home=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
-        org.gradle.jvmargs=-Xmx2048m
-        android.useAndroidX=true
-        android.enableJetifier=true
-        EOF
-        cat gradle.properties
+    - name: Build
+      run: cd android && ./gradlew assembleDebug --no-daemon
 
-    - name: Update Gradle Wrapper
-      run: |
-        cd android
-        sed -i 's/distributionUrl=.*/distributionUrl=https\:\/\/services.gradle.org\/distributions\/gradle-8.13-bin.zip/' gradle/wrapper/gradle-wrapper.properties
-        cat gradle/wrapper/gradle-wrapper.properties
-
-    - name: Build APK
-      run: |
-        cd android
-        chmod +x gradlew
-        echo "=== 开始 Gradle 构建 ==="
-        ./gradlew assembleDebug --no-daemon
-        echo "=== 构建完成，查找 APK ==="
-        find . -name "*.apk" -type f -ls
-        echo "=== 检查标准路径 ==="
-        ls -la app/build/outputs/apk/debug/ || echo "debug 目录不存在"
-
-    - name: Upload APK
+    - name: Upload
       uses: actions/upload-artifact@v4
       with:
         name: hainan-ftp-policy-app
         path: android/app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
-        if-no-files-found: warn
