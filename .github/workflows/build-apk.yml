@@ -54,7 +54,10 @@ jobs:
         EOF
 
     - name: Add Android Platform
-      run: npx cap add android
+      run: |
+        # 如果 android 目录已存在，先删除避免冲突
+        rm -rf android
+        npx cap add android
 
     - name: Sync
       run: npx cap sync android
@@ -63,7 +66,9 @@ jobs:
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon
+        # 增加 Gradle 内存
+        export GRADLE_OPTS="-Xmx2048m -XX:MaxMetaspaceSize=512m"
+        ./gradlew assembleDebug --no-daemon --stacktrace
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
