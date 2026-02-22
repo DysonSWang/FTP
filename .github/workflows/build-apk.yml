@@ -62,7 +62,7 @@ jobs:
     - name: Sync
       run: npx cap sync android
 
-    - name: Fix Java Version
+    - name: Fix Java Version Everywhere
       run: |
         cd android
         echo "=== 修复项目级 build.gradle ==="
@@ -79,6 +79,29 @@ jobs:
         sed -i 's/= "21"/= "17"/g' build.gradle
         sed -i 's/sourceCompatibility 21/sourceCompatibility 17/g' build.gradle
         sed -i 's/targetCompatibility 21/targetCompatibility 17/g' build.gradle
+        
+        echo "=== 修复 capacitor-android 模块 ==="
+        cd ../capacitor-cordova-android-plugins
+        if [ -f "build.gradle" ]; then
+          sed -i 's/VERSION_21/VERSION_17/g' build.gradle
+          sed -i 's/VERSION21/VERSION17/g' build.gradle
+          sed -i "s/= '21'/= '17'/g" build.gradle
+          sed -i 's/= "21"/= "17"/g' build.gradle
+          echo "capacitor-cordova-android-plugins build.gradle 已修复"
+        fi
+        
+        cd ../capacitor-cordova-android-plugins/cordova-lib
+        if [ -f "build.gradle" ]; then
+          sed -i 's/VERSION_21/VERSION_17/g' build.gradle
+          sed -i 's/VERSION21/VERSION17/g' build.gradle
+          sed -i "s/= '21'/= '17'/g" build.gradle
+          sed -i 's/= "21"/= "17"/g' build.gradle
+          echo "cordova-lib build.gradle 已修复"
+        fi
+        
+        echo "=== 全局搜索所有 Java 21 配置 ==="
+        cd ..
+        grep -r "VERSION_21\|VERSION21\|= '21'\|= \"21\"" --include="*.gradle" || echo "未找到 Java 21 配置"
 
     - name: Create gradle.properties
       run: |
@@ -106,7 +129,6 @@ jobs:
         echo "=== 构建完成，查找 APK ==="
         find . -name "*.apk" -type f -ls
         echo "=== 检查标准路径 ==="
-        ls -la app/build/outputs/apk/ || echo "目录不存在"
         ls -la app/build/outputs/apk/debug/ || echo "debug 目录不存在"
 
     - name: Upload APK
