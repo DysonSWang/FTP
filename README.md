@@ -1,255 +1,255 @@
-# 🌴 海南自由贸易港政策库
+# 🌴 海南自贸港政策库 - 部署指南
 
-> 一站式海南自贸港政策查询与 AI 问答平台
+## 快速部署（3 步启动）
 
----
-
-## 📋 功能特性
-
-### 1. 政策展示
-- 🔍 **智能搜索** - 关键词搜索政策标题、内容
-- 📑 **分类筛选** - 8 个政策类别快速筛选（税收优惠、贸易自由、投资自由等）
-- 📖 **详情查看** - 点击卡片查看政策原文 + 专业解读
-- 📊 **统计展示** - 实时显示政策数量
-- 📱 **响应式设计** - 适配手机、平板、电脑
-
-### 2. AI 问答机器人 🤖
-- 💬 **自由问答** - 基于智谱大模型，自由提问政策相关问题
-- 🎯 **精准回答** - 基于 30 条核心政策库，答案准确可靠
-- 📚 **政策引用** - 自动引用相关政策条款
-- 💡 **申报建议** - 提供政策适用性和申报指导
-- 🔐 **灵活配置** - 支持前端（浏览器本地）或后端（服务器）配置 API Key
-
----
-
-## 🚀 快速开始
-
-### 方式一：纯前端版本（无需后端）
-
-1. **直接打开 HTML 文件**
 ```bash
-# 在浏览器中打开
-open index.html
+# 1. 克隆代码
+git clone git@github.com:DysonSWang/FTP.git
+cd FTP/hainan-policy
 
-# 或使用 Python 启动本地服务
-python3 -m http.server 5173
-# 访问 http://localhost:5173
+# 2. 安装依赖
+npm install
+
+# 3. 配置环境变量
+cp .env.example .env
+# 编辑 .env 填入智谱 AI API Key
+
+# 4. 启动服务
+node server.js
 ```
 
-2. **配置智谱 AI API Key**
-   - 首次打开会弹出配置弹窗
-   - 输入你的智谱 AI API Key
-   - API Key 仅存储在本地浏览器
+访问：http://localhost:5173
 
-3. **开始使用**
-   - 点击右下角"政策助手"按钮
-   - 输入政策相关问题
-   - AI 会基于政策库智能回答
+---
 
-### 方式二：完整版本（带后端 API）
+## 📋 环境要求
 
-1. **安装依赖**
+| 项目 | 版本 | 检查命令 |
+|------|------|---------|
+| Node.js | v16+ | `node -v` |
+| npm | v8+ | `npm -v` |
+| 端口 | 5173 可用 | `lsof -ti:5173` |
+
+---
+
+## 🔑 配置文件
+
+### .env 环境变量
+
 ```bash
-cd hainan-policy
+# 智谱 AI API Key（必需）
+# 申请地址：https://open.bigmodel.cn/
+ZHIPU_API_KEY=your_api_key_here
+
+# 服务端口（可选，默认 5173）
+PORT=5173
+
+# 服务器外网 IP（可选，用于 APK 连接）
+SERVER_IP=你的服务器公网IP
+```
+
+---
+
+## 🚀 生产环境部署
+
+### 方案 1：PM2 进程管理（推荐）
+
+```bash
+# 安装 PM2
+npm install -g pm2
+
+# 启动服务
+pm2 start server.js --name hainan-policy
+
+# 开机自启
+pm2 startup
+pm2 save
+
+# 查看日志
+pm2 logs hainan-policy
+
+# 重启服务
+pm2 restart hainan-policy
+```
+
+### 方案 2：Systemd 服务
+
+```bash
+# 创建服务文件
+sudo nano /etc/systemd/system/hainan-policy.service
+```
+
+```ini
+[Unit]
+Description=Hainan FTP Policy Server
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/path/to/hainan-policy
+ExecStart=/usr/bin/node server.js
+Restart=always
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+# 启动服务
+sudo systemctl enable hainan-policy
+sudo systemctl start hainan-policy
+sudo systemctl status hainan-policy
+```
+
+### 方案 3：Docker 部署
+
+```bash
+# 构建镜像
+docker build -t hainan-policy .
+
+# 启动容器
+docker run -d \
+  --name hainan-policy \
+  -p 5173:5173 \
+  --restart always \
+  -e ZHIPU_API_KEY=your_key \
+  hainan-policy
+```
+
+---
+
+## 📱 APK 构建
+
+### GitHub Actions 自动构建
+
+1. 推送代码到 `master` 分支
+2. GitHub Actions 自动触发构建
+3. 在 [Actions](https://github.com/DysonSWang/FTP/actions) 下载 APK
+
+### 本地构建
+
+```bash
+# 安装 Capacitor
+npm install @capacitor/core @capacitor/cli @capacitor/android
+
+# 构建前端
+npm run build
+
+# 同步到 Android
+npx cap sync android
+
+# 打开 Android Studio
+npx cap open android
+```
+
+---
+
+## 🔧 故障排查
+
+### 服务无法启动
+
+```bash
+# 检查端口占用
+lsof -ti:5173 | xargs kill -9
+
+# 检查 Node 版本
+node -v  # 需要 v16+
+
+# 重新安装依赖
+rm -rf node_modules package-lock.json
 npm install
 ```
 
-2. **配置环境变量**
+### AI 问答无响应
+
 ```bash
-# 复制环境配置示例
-cp .env.example .env
+# 检查智谱 API Key
+cat .env | grep ZHIPU
 
-# 编辑 .env 文件，填入你的智谱 AI API Key
-nano .env
+# 测试 API 连接
+curl https://open.bigmodel.cn/api/paas/v4/chat/completions \
+  -H "Authorization: Bearer YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"glm-4-flash","messages":[{"role":"user","content":"test"}]}'
 ```
 
-3. **启动服务**
+### 外网无法访问
+
 ```bash
-# 开发模式
-npm run dev
+# 检查防火墙
+sudo ufw allow 5173
 
-# 生产模式
-npm start
-```
+# 检查服务器 IP
+curl ifconfig.me
 
-4. **访问网站**
-```
-http://localhost:3001
-```
-
----
-
-## 📁 项目结构
-
-```
-hainan-policy/
-├── index.html          # 前端页面（政策展示 + AI 机器人）
-├── server.js           # 后端 API 服务（Node.js + Express）
-├── package.json        # 项目依赖配置
-├── .env.example        # 环境变量示例
-├── .env                # 环境变量配置（需自行创建）
-└── README.md           # 项目说明文档
+# 测试外网访问
+curl http://你的服务器IP:5173
 ```
 
 ---
 
-## 🤖 AI 机器人功能
+## 📊 监控与维护
 
-### 支持的问答类型
+### 服务监控脚本
 
-| 类型 | 示例问题 |
-|------|----------|
-| 政策查询 | "海南自贸港有哪些税收优惠政策？" |
-| 适用性判断 | "我的企业可以享受 15% 所得税吗？" |
-| 政策对比 | "个税 15% 和企业所得税 15% 有什么区别？" |
-| 申报指导 | "如何申请离岛免税购物额度？" |
-| 细节咨询 | "加工增值 30% 怎么计算？" |
+```bash
+# 运行监控脚本
+./monitor-service.sh
 
-### API 配置方式
+# 查看监控日志
+tail -f monitor.log
+```
 
-#### 方式 1：前端配置（推荐个人使用）
-- API Key 存储在浏览器 localStorage
-- 无需后端服务
-- 适合个人使用和演示
+### 日志查看
 
-#### 方式 2：后端配置（推荐企业使用）
-- API Key 配置在服务器端 .env 文件
-- 前端通过后端 API 调用
-- 更安全，适合生产环境
+```bash
+# 后端日志
+tail -f hainan-backend.log
 
----
+# PM2 日志
+pm2 logs hainan-policy
 
-## 🔑 获取智谱 AI API Key
-
-1. 访问 [智谱 AI 开放平台](https://open.bigmodel.cn/)
-2. 注册/登录账号
-3. 进入控制台创建 API Key
-4. 推荐使用 `glm-4-flash` 模型（性价比高）
-
-### 模型选择建议
-
-| 模型 | 适用场景 | 价格 |
-|------|----------|------|
-| glm-4-flash | 日常问答、快速响应 | 最便宜 |
-| glm-4 | 复杂问题、深度分析 | 中等 |
-| glm-4-plus | 专业场景、高精度 | 较贵 |
+# 系统日志
+journalctl -u hainan-policy -f
+```
 
 ---
 
-## 📊 政策库分类
+## 🎯 演示准备
 
-### 8 大政策类别
+### 演示前检查
 
-1. **税收优惠** (6 条) - 个税、企业所得税、关税等
-2. **贸易自由** (6 条) - 零关税、离岛免税、加工增值等
-3. **投资自由** (3 条) - 境外投资、资本性支出、市场准入等
-4. **金融开放** (6 条) - FT 账户、跨境结算、保险机构等
-5. **人员流动** (3 条) - 免签入境、工作许可、资格认可等
-6. **运输自由** (3 条) - 保税航油、国际船籍港、启运港退税等
-7. **数据安全** (3 条) - 数据跨境、增值电信业务、通信出入口等
-8. **产业发展** (4 条) - 知识产权、邮轮旅游、教育医疗等
+```bash
+# 1. 服务状态
+curl -sI http://localhost:5173 | head -3
 
----
+# 2. AI 问答测试
+curl -X POST http://localhost:5173/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message":"测试","stream":false}'
 
-## 🛠️ 技术栈
+# 3. 政策数据
+curl http://localhost:5173/api/policies | head -20
+```
 
-### 前端
-- HTML5 + CSS3 + JavaScript (原生)
-- 渐变紫色主题设计
-- 响应式布局
-- 模态弹窗交互
+### 演示数据
 
-### 后端（可选）
-- Node.js + Express
-- 智谱 AI API 集成
-- RESTful API 设计
-
-### AI 模型
-- 智谱 GLM-4-Flash
-- 基于 30 条核心政策微调回答
-
----
-
-## 🌐 部署建议
-
-### 静态部署（纯前端版本）
-- **Vercel** - 免费，自动 HTTPS
-- **Netlify** - 免费，支持表单
-- **GitHub Pages** - 免费，简单快捷
-
-### 完整部署（带后端）
-- **Railway** - 免费额度，支持 Node.js
-- **Render** - 免费套餐，自动部署
-- **自建服务器** - 完全控制，适合企业
-
----
-
-## 📝 使用示例
-
-### 示例对话
-
-**用户**: 我是做跨境电商的，在海南注册公司有什么税收优惠？
-
-**AI 助手**: 
-您好！跨境电商在海南可享受以下税收优惠 🎉
-
-1️⃣ **企业所得税 15%**
-- 鼓励类产业企业减按 15% 征收（标准为 25%）
-- 跨境电商属于鼓励类产业
-
-2️⃣ **进口设备零关税**
-- 进口自用的生产设备免征关税、增值税
-- 可节省约 20-30% 设备投资成本
-
-3️⃣ **境外投资所得免税**
-- 2025 年前新增境外直接投资所得免征企业所得税
-- 适合开展跨境业务
-
-4️⃣ **人才个税优惠**
-- 高端人才个税封顶 15%
-- 可为核心团队申请
-
-💡 **建议**: 确保企业实质性运营在海南（人员、账务、财产等），并主营业务属于鼓励类产业且收入占比超 60%。
-
-需要了解更多细节吗？
-
----
-
-## ⚠️ 注意事项
-
-1. **API Key 安全**
-   - 前端配置时，API Key 仅存储在本地浏览器
-   - 后端配置时，请勿将 .env 文件提交到 Git
-
-2. **政策准确性**
-   - 政策内容基于公开信息整理
-   - 具体申报请以官方最新文件为准
-   - AI 回答仅供参考，不构成法律建议
-
-3. **使用限制**
-   - 智谱 AI 有调用频率限制
-   - 免费版有额度限制
-   - 建议合理使用
-
----
-
-## 🔄 更新日志
-
-### v1.0.0 (2026-02-21)
-- ✅ 30 条海南自贸港核心政策
-- ✅ 政策展示与搜索功能
-- ✅ 分类筛选功能
-- ✅ AI 问答机器人（智谱 AI 集成）
-- ✅ 响应式设计
-- ✅ 前端/后端双模式支持
+- **政策数量**: 60 条
+- **政策分类**: 8 个
+- **AI 模型**: 智谱 GLM-4-Flash
+- **响应时间**: < 2 秒
 
 ---
 
 ## 📞 技术支持
 
-- 智谱 AI 文档：https://open.bigmodel.cn/dev/api
-- 海南自贸港官网：https://www.hnftp.gov.cn
-- 政策咨询：海南省政务服务热线 12345
+| 问题类型 | 联系方式 |
+|---------|---------|
+| 部署问题 | 查看本文档 |
+| API 问题 | 智谱 AI 文档 |
+| 代码问题 | GitHub Issues |
 
 ---
 
@@ -259,4 +259,5 @@ MIT License
 
 ---
 
-**🌴 海南自由贸易港 - 欢迎您来投资兴业！**
+**最后更新**: 2026-02-22  
+**当前版本**: v1.0.0
