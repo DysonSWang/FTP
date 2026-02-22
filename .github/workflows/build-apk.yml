@@ -48,13 +48,31 @@ jobs:
     - name: Sync
       run: npx cap sync android
 
-    - name: Fix Java 17
+    - name: Force Java 17 Everywhere
       run: |
         cd android
-        echo "org.gradle.java.home=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64" >> gradle.properties
-        echo "android.useAndroidX=true" >> gradle.properties
-        sed -i 's/VERSION_21/VERSION_17/g' build.gradle app/build.gradle
-        sed -i "s/= '21'/= '17'/g" build.gradle app/build.gradle
+        # gradle.properties
+        cat > gradle.properties << 'EOF'
+        org.gradle.java.home=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+        android.useAndroidX=true
+        android.enableJetifier=true
+        EOF
+        
+        # 所有 build.gradle 文件
+        find . -name "build.gradle" -type f | while read file; do
+          sed -i 's/VERSION_21/VERSION_17/g' "$file"
+          sed -i 's/VERSION21/VERSION17/g' "$file"
+          sed -i "s/= '21'/= '17'/g" "$file"
+          sed -i 's/= "21"/= "17"/g' "$file"
+          sed -i 's/sourceCompatibility 21/sourceCompatibility 17/g' "$file"
+          sed -i 's/targetCompatibility 21/targetCompatibility 17/g' "$file"
+          sed -i 's/sourceCompatibility JavaVersion.VERSION_21/sourceCompatibility JavaVersion.VERSION_17/g' "$file"
+          sed -i 's/targetCompatibility JavaVersion.VERSION_21/targetCompatibility JavaVersion.VERSION_17/g' "$file"
+        done
+        
+        # 验证
+        echo "=== 检查是否还有 Java 21 ==="
+        grep -r "21" --include="*.gradle" | grep -i version || echo "未发现 Java 21"
 
     - name: Build
       run: cd android && ./gradlew assembleDebug --no-daemon
