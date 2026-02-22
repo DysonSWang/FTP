@@ -31,7 +31,6 @@ jobs:
 
     - name: Fix Capacitor Java Version BEFORE sync
       run: |
-        echo "=== 修改 node_modules 中的 Capacitor 配置 ==="
         sed -i 's/VERSION_21/VERSION_17/g' node_modules/@capacitor/android/capacitor/build.gradle 2>/dev/null || true
         sed -i 's/VERSION21/VERSION17/g' node_modules/@capacitor/android/capacitor/build.gradle 2>/dev/null || true
         sed -i "s/= '21'/= '17'/g" node_modules/@capacitor/android/capacitor/build.gradle 2>/dev/null || true
@@ -52,7 +51,7 @@ jobs:
         rm -rf android
         npx cap add android
 
-    - name: Create variables.gradle (Android 35)
+    - name: Create variables.gradle
       run: |
         cat > android/variables.gradle << 'EOF'
         ext {
@@ -76,11 +75,10 @@ jobs:
     - name: Sync
       run: npx cap sync android
 
-    - name: COMPLETE REWRITE of app/build.gradle
+    - name: Rewrite app/build.gradle
       run: |
         cd android
         
-        # 1. gradle.properties
         cat > gradle.properties << 'EOF'
         org.gradle.java.home=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
         android.useAndroidX=true
@@ -88,58 +86,51 @@ jobs:
         org.gradle.jvmargs=-Xmx2048m
         EOF
         
-        # 2. 完全重写 app/build.gradle (确保 Java 17)
         cat > app/build.gradle << 'EOFG'
-        plugins {
-            id 'com.android.application'
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.hainan.ftp.policy'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.hainan.ftp.policy"
+        minSdk 22
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
-
-        android {
-            namespace 'com.hainan.ftp.policy'
-            compileSdk 35
-
-            defaultConfig {
-                applicationId "com.hainan.ftp.policy"
-                minSdk 22
-                targetSdk 35
-                versionCode 1
-                versionName "1.0"
-            }
-
-            compileOptions {
-                sourceCompatibility JavaVersion.VERSION_17
-                targetCompatibility JavaVersion.VERSION_17
-            }
-
-            buildTypes {
-                release {
-                    minifyEnabled false
-                    proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-                }
-                debug {
-                    debuggable true
-                }
-            }
+        debug {
+            debuggable true
         }
+    }
+}
 
-        dependencies {
-            implementation fileTree(dir: 'libs', include: ['*.jar'])
-            implementation project(':capacitor-android')
-            implementation 'androidx.core:core-splashscreen:1.0.1'
-            implementation 'androidx.webkit:webkit:1.9.0'
-            implementation 'androidx.appcompat:appcompat:1.6.1'
-            implementation 'com.google.android.material:material:1.11.0'
-        }
-        EOF
-        
-        echo "✓ 完全重写了 app/build.gradle"
-        
-        # 3. 验证
-        echo "=== 验证 compileOptions ==="
-        grep -A3 "compileOptions" app/build.gradle
-        
-        echo "=== 检查 Java 21 残留 ==="
-        grep -rn "21" --include="*.gradle" . 2>/dev/null | grep -i version || echo "✓ 无 Java 21"
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(':capacitor-android')
+    implementation 'androidx.core:core-splashscreen:1.0.1'
+    implementation 'androidx.webkit:webkit:1.9.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+}
+EOFG
+
+        echo "Rewrote app/build.gradle successfully"
+        grep -A2 "compileOptions" app/build.gradle
 
     - name: Build
       run: |
