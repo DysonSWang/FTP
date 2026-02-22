@@ -31,18 +31,12 @@ jobs:
 
     - name: Fix Capacitor Java Version BEFORE sync
       run: |
-        # 在 sync 之前修改 node_modules 中的 Capacitor 配置
         echo "=== 修改 node_modules 中的 Capacitor 配置 ==="
         if [ -f "node_modules/@capacitor/android/capacitor/build.gradle" ]; then
           sed -i 's/VERSION_21/VERSION_17/g' node_modules/@capacitor/android/capacitor/build.gradle
           sed -i 's/VERSION21/VERSION17/g' node_modules/@capacitor/android/capacitor/build.gradle
           sed -i "s/= '21'/= '17'/g" node_modules/@capacitor/android/capacitor/build.gradle
           echo "✓ 修改了 @capacitor/android/capacitor/build.gradle"
-        fi
-        
-        if [ -f "node_modules/@capacitor/android/capacitor-cordova-android-plugins/build.gradle" ]; then
-          sed -i 's/VERSION_21/VERSION_17/g' node_modules/@capacitor/android/capacitor-cordova-android-plugins/build.gradle
-          echo "✓ 修改了 capacitor-cordova-android-plugins/build.gradle"
         fi
 
     - name: Create www
@@ -61,14 +55,13 @@ jobs:
         rm -rf android
         npx cap add android
 
-    - name: Create variables.gradle
+    - name: Create variables.gradle (Android 35 for VANILLA_ICE_CREAM)
       run: |
-        # Capacitor 5+ 使用 variables.gradle 统一配置
         cat > android/variables.gradle << 'EOF'
         ext {
             minSdkVersion = 22
-            compileSdkVersion = 34
-            targetSdkVersion = 34
+            compileSdkVersion = 35
+            targetSdkVersion = 35
             androidxActivityVersion = '1.8.0'
             androidxAppCompatVersion = '1.6.1'
             androidxCoordinatorLayoutVersion = '1.2.0'
@@ -82,7 +75,7 @@ jobs:
             cordovaAndroidVersion = '10.1.1'
         }
         EOF
-        echo "✓ 创建了 variables.gradle"
+        echo "✓ 创建了 variables.gradle (compileSdkVersion = 35)"
 
     - name: Sync
       run: npx cap sync android
@@ -90,7 +83,6 @@ jobs:
     - name: Force Java 17 in android/
       run: |
         cd android
-        # gradle.properties
         cat > gradle.properties << 'EOF'
         org.gradle.java.home=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
         android.useAndroidX=true
@@ -98,7 +90,6 @@ jobs:
         org.gradle.jvmargs=-Xmx2048m
         EOF
         
-        # 所有 build.gradle
         find . -name "build.gradle" -type f | while read file; do
           sed -i 's/VERSION_21/VERSION_17/g' "$file"
           sed -i 's/VERSION21/VERSION17/g' "$file"
@@ -106,14 +97,13 @@ jobs:
           sed -i 's/= "21"/= "17"/g' "$file"
         done
         
-        # 验证
         echo "=== 检查 Java 21 残留 ==="
         grep -r "VERSION_21\|VERSION21" --include="*.gradle" . && echo "⚠️ 发现 Java 21!" || echo "✓ 无 Java 21"
 
-    - name: Build with Java 17 flags
+    - name: Build
       run: |
         cd android
-        ./gradlew assembleDebug --no-daemon -Dorg.gradle.java.home=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+        ./gradlew assembleDebug --no-daemon
 
     - name: Upload
       uses: actions/upload-artifact@v4
