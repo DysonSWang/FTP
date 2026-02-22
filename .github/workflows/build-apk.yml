@@ -76,7 +76,7 @@ jobs:
     - name: Sync
       run: npx cap sync android
 
-    - name: Fix ALL Java 21 References
+    - name: COMPLETE REWRITE of app/build.gradle
       run: |
         cd android
         
@@ -88,83 +88,63 @@ jobs:
         org.gradle.jvmargs=-Xmx2048m
         EOF
         
-        # 2. 创建 settings.gradle.kts 强制 Java 17
-        cat > settings.gradle.kts << 'EOF'
-        pluginManagement {
-            repositories {
-                google()
-                gradlePluginPortal()
-                mavenCentral()
+        # 2. 完全重写 app/build.gradle (确保 Java 17)
+        cat > app/build.gradle << 'EOFG'
+        plugins {
+            id 'com.android.application'
+        }
+
+        android {
+            namespace 'com.hainan.ftp.policy'
+            compileSdk 35
+
+            defaultConfig {
+                applicationId "com.hainan.ftp.policy"
+                minSdk 22
+                targetSdk 35
+                versionCode 1
+                versionName "1.0"
+            }
+
+            compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
+
+            buildTypes {
+                release {
+                    minifyEnabled false
+                    proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+                }
+                debug {
+                    debuggable true
+                }
             }
         }
-        dependencyResolutionManagement {
-            repositories {
-                google()
-                mavenCentral()
-            }
+
+        dependencies {
+            implementation fileTree(dir: 'libs', include: ['*.jar'])
+            implementation project(':capacitor-android')
+            implementation 'androidx.core:core-splashscreen:1.0.1'
+            implementation 'androidx.webkit:webkit:1.9.0'
+            implementation 'androidx.appcompat:appcompat:1.6.1'
+            implementation 'com.google.android.material:material:1.11.0'
         }
         EOF
         
-        # 3. 修复所有 build.gradle 文件
-        find . -name "build.gradle" -type f | while read file; do
-          echo "Processing: $file"
-          sed -i 's/VERSION_21/VERSION_17/g' "$file"
-          sed -i 's/VERSION21/VERSION17/g' "$file"
-          sed -i "s/= '21'/= '17'/g' "$file"
-          sed -i 's/= "21"/= "17"/g' "$file"
-          sed -i 's/sourceCompatibility 21/sourceCompatibility 17/g' "$file"
-          sed -i 's/targetCompatibility 21/targetCompatibility 17/g' "$file"
-        done
+        echo "✓ 完全重写了 app/build.gradle"
         
-        # 4. 强制重写 app/build.gradle 的 compileOptions
-        if [ -f "app/build.gradle" ]; then
-          # 备份原文件
-          cp app/build.gradle app/build.gradle.bak
-          
-          # 使用 awk 重写整个 android 块
-          awk '
-          BEGIN { in_android = 0; in_compile = 0 }
-          /^android\s*\{/ { 
-            in_android = 1
-            print "android {"
-            print "    compileOptions {"
-            print "        sourceCompatibility JavaVersion.VERSION_17"
-            print "        targetCompatibility JavaVersion.VERSION_17"
-            print "    }"
-            next
-          }
-          /^\s*compileOptions\s*\{/ { 
-            in_compile = 1
-            next
-          }
-          in_compile && /^\s*\}/ { 
-            in_compile = 0
-            next
-          }
-          in_compile { next }
-          { print }
-          ' app/build.gradle.bak > app/build.gradle.new
-          mv app/build.gradle.new app/build.gradle
-          
-          echo "✓ 强制重写了 app/build.gradle"
-        fi
-        
-        # 5. 验证
+        # 3. 验证
         echo "=== 验证 compileOptions ==="
-        grep -A3 "compileOptions" app/build.gradle || echo "⚠️ 未找到"
+        grep -A3 "compileOptions" app/build.gradle
         
         echo "=== 检查 Java 21 残留 ==="
         grep -rn "21" --include="*.gradle" . 2>/dev/null | grep -i version || echo "✓ 无 Java 21"
 
-    - name: Build with Java 17 flags
+    - name: Build
       run: |
         cd android
-        # 关键：通过命令行参数强制 Java 17
-        ./gradlew assembleDebug \
-          --no-daemon \
-          -Dorg.gradle.java.home=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64 \
-          -Djava.source.version=17 \
-          -Djava.target.version=17
+        ./gradlew assembleDebug --no-daemon
 
     - name: Upload
       uses: actions/upload-artifact@v4
