@@ -2,13 +2,24 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Hainan FTP Policy Database | 海南自贸港政策库</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        /* 安全区域适配 - 刘海屏/灵动岛 */
+        :root {
+            --safe-area-top: env(safe-area-inset-top, 0px);
+            --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-area-left: env(safe-area-inset-left, 0px);
+            --safe-area-right: env(safe-area-inset-right, 0px);
+        }
         
         /* 禁止水平滚动和拉动效果 */
         html, body {
@@ -25,6 +36,8 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             min-height: 100vh; 
             padding: 20px;
+            padding-top: calc(20px + var(--safe-area-top));
+            padding-bottom: calc(20px + var(--safe-area-bottom));
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
@@ -41,27 +54,37 @@
             right: 0;
             background: rgba(102, 126, 234, 0.95); 
             backdrop-filter: blur(10px); 
-            padding: 10px 20px; 
+            padding: calc(10px + var(--safe-area-top)) 20px 10px;
             display: flex; 
             justify-content: center;
             gap: 10px; 
             z-index: 1000;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding-left: calc(20px + var(--safe-area-left));
+            padding-right: calc(20px + var(--safe-area-right));
         }
         .lang-btn { 
             background: transparent; 
             border: 2px solid rgba(255,255,255,0.5); 
             color: white; 
-            padding: 6px 14px; 
-            border-radius: 20px; 
+            padding: 8px 16px; 
+            min-width: 44px;
+            min-height: 44px;
+            border-radius: 22px; 
             cursor: pointer; 
             font-size: 0.85rem; 
             transition: all 0.3s; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .lang-btn:hover, .lang-btn.active { 
             background: white; 
             color: #667eea; 
             border-color: white; 
+        }
+        .lang-btn:active {
+            transform: scale(0.95);
         }
         
         /* 搜索框优化 - 更小更简洁 */
@@ -83,20 +106,37 @@
             font-size: 0.9rem; 
             padding: 8px;
             min-width: 0;
+            -webkit-appearance: none;
+        }
+        .search-box input:focus {
+            background: #f8f9fa;
+            border-radius: 20px;
         }
         .search-box button { 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             color: white; 
             border: none; 
             padding: 10px 20px; 
+            min-width: 44px;
+            min-height: 44px;
             border-radius: 20px; 
             cursor: pointer; 
             font-size: 0.9rem; 
             transition: transform 0.2s;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .search-box button:hover { 
             transform: scale(1.05); 
+        }
+        .search-box button:active {
+            transform: scale(0.95);
+        }
+        .search-box button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
         .category-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin: 30px 0; justify-content: center; }
         .category-tab { background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 25px; cursor: pointer; transition: all 0.3s; font-size: 0.95rem; }
@@ -277,6 +317,164 @@
         .robot-footer { padding: 12px 20px; background: #f8f9fa; border-top: 1px solid #e0e0e0; font-size: 0.8rem; color: #999; }
         @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.7; } 30% { transform: translateY(-10px); opacity: 1; } }
         
+        /* ===== 移动端增强体验 ===== */
+        
+        /* Toast 通知 */
+        .toast {
+            position: fixed;
+            bottom: calc(80px + var(--safe-area-bottom));
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            z-index: 10000;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            max-width: 80%;
+            text-align: center;
+            pointer-events: none;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        .toast.error {
+            background: rgba(220, 53, 69, 0.9);
+        }
+        .toast.success {
+            background: rgba(40, 167, 69, 0.9);
+        }
+        
+        /* 加载骨架屏 */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 8px;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* 卡片点击反馈 */
+        .policy-card {
+            -webkit-tap-highlight-color: rgba(102, 126, 234, 0.2);
+        }
+        .policy-card:active {
+            transform: scale(0.98);
+        }
+        
+        /* 分类标签 - 最小触摸区域 */
+        .category-tab {
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .category-tab:active {
+            transform: scale(0.95);
+        }
+        
+        /* 政策卡片 - 优化触摸区域 */
+        .policy-card {
+            min-height: 150px;
+        }
+        
+        /* 关闭按钮 - 最小 44px */
+        .modal-close, .robot-close {
+            min-width: 44px;
+            min-height: 44px;
+        }
+        
+        /* 输入框 - 防止 iOS 缩放 */
+        input, textarea, select {
+            font-size: 16px !important;
+        }
+        
+        /* 链接/按钮 点击态 */
+        a, button, .action-btn, .question-item, .suggested-question {
+            -webkit-tap-highlight-color: rgba(102, 126, 234, 0.3);
+            touch-action: manipulation;
+        }
+        a:active, button:active, .action-btn:active {
+            opacity: 0.8;
+        }
+        
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.7);
+        }
+        
+        /* 页面过渡动画 */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* 上拉动画 */
+        .slide-up {
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* 下拉刷新指示器 */
+        .pull-refresh {
+            position: absolute;
+            top: -60px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9rem;
+            transition: top 0.3s;
+        }
+        .pull-refresh.active {
+            top: 0;
+        }
+        
+        /* 网络状态提示 */
+        .offline-banner {
+            position: fixed;
+            top: 40px;
+            left: 0;
+            right: 0;
+            background: rgba(255, 152, 0, 0.95);
+            color: white;
+            text-align: center;
+            padding: 8px;
+            font-size: 0.85rem;
+            z-index: 999;
+            display: none;
+        }
+        .offline-banner.show {
+            display: block;
+        }
+        
         /* 移动端优化 */
         @media (max-width: 768px) { 
             body { padding-top: 50px; }
@@ -299,6 +497,12 @@
     </style>
 </head>
 <body>
+    <!-- Toast 通知 -->
+    <div class="toast" id="toast"></div>
+    
+    <!-- 离线提示 -->
+    <div class="offline-banner" id="offlineBanner">⚠️ 当前处于离线状态，部分功能可能不可用</div>
+    
     <div class="lang-switcher">
         <button class="lang-btn active" onclick="switchLang('zh')" id="langZh">中文</button>
         <button class="lang-btn" onclick="switchLang('en')" id="langEn">English</button>
@@ -485,7 +689,39 @@
         };
 
         // Search
-        function searchPolicies() { searchQuery = document.getElementById('searchInput').value.trim(); renderPolicies(); }
+        function searchPolicies() {
+            const input = document.getElementById('searchInput');
+            const btn = document.querySelector('.search-box button');
+            searchQuery = input.value.trim();
+            
+            // 输入验证
+            if (!searchQuery) {
+                showToast('🔍 请输入搜索关键词', 'info');
+                input.focus();
+                return;
+            }
+            
+            // 按钮加载状态
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '⏳ 搜索中...';
+            
+            renderPolicies();
+            
+            // 恢复按钮
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                
+                // 显示结果提示
+                const count = document.querySelectorAll('.policy-card:not([style*="display: none"])').length;
+                if (count > 0) {
+                    showToast(`✅ 找到 ${count} 条相关政策`, 'success');
+                } else {
+                    showToast('😅 未找到相关政策', 'error');
+                }
+            }, 300);
+        }
         document.getElementById('searchInput').onkeypress = function(e) { if(e.key==='Enter') searchPolicies(); };
 
         // Modal functions
@@ -519,6 +755,68 @@
         }
 
         function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); }
+        
+        // ===== 移动端增强功能 =====
+        
+        // Toast 通知
+        let toastTimeout;
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.classList.add('show');
+            
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // 网络状态监控
+        function updateOnlineStatus() {
+            const banner = document.getElementById('offlineBanner');
+            if (navigator.onLine) {
+                banner.classList.remove('show');
+            } else {
+                banner.classList.add('show');
+                showToast('⚠️ 网络已断开', 'error');
+            }
+        }
+        
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        
+        // 防止双击缩放
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+        
+        // 输入框聚焦时防止页面滚动
+        document.addEventListener('focusin', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                setTimeout(() => {
+                    e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            }
+        });
+        
+        // Android 返回键处理
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' || e.key === 'Backspace') {
+                if (isRobotOpen) {
+                    e.preventDefault();
+                    toggleRobot();
+                } else if (document.getElementById('modalOverlay').classList.contains('active')) {
+                    e.preventDefault();
+                    closeModal();
+                }
+            }
+        });
 
         // Robot functions
         function toggleRobot() {
@@ -555,12 +853,25 @@
 
         async function sendRobotMessage() {
             const input = document.getElementById('robotInput');
+            const sendBtn = document.getElementById('robotSendBtn');
             const msg = input.value.trim();
-            if (!msg) return;
+            
+            if (!msg) {
+                showToast('💬 请输入问题', 'info');
+                input.focus();
+                return;
+            }
+            
+            // 检查网络状态
+            if (!navigator.onLine) {
+                showToast('⚠️ 网络已断开，请检查连接', 'error');
+                return;
+            }
+            
             addUserMessage(msg);
             input.value = '';
             document.getElementById('robotTyping').style.display = 'flex';
-            document.getElementById('robotSendBtn').disabled = true;
+            sendBtn.disabled = true;
             
             try {
                 // Use streaming for better UX
@@ -571,7 +882,8 @@
                 const res = await fetch(API_BASE + '/api/chat', { 
                     method: 'POST', 
                     headers: {'Content-Type': 'application/json'}, 
-                    body: JSON.stringify({message: msg, stream: true}) 
+                    body: JSON.stringify({message: msg, stream: true}),
+                    timeout: 30000
                 });
                 
                 if (!res.ok) {
@@ -686,7 +998,19 @@
             } catch (e) {
                 document.getElementById('robotTyping').style.display = 'none';
                 document.getElementById('robotSendBtn').disabled = false;
-                addBotMessage('❌ Network error: ' + e.message);
+                
+                // 友好的错误提示
+                let errorMsg = '😅 请求失败，请重试';
+                if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
+                    errorMsg = '⚠️ 网络连接失败，请检查服务器是否正常运行';
+                } else if (e.message.includes('timeout')) {
+                    errorMsg = '⏱️ 请求超时，请重试';
+                }
+                
+                addBotMessage('❌ ' + errorMsg);
+                showToast(errorMsg, 'error');
+                
+                console.error('Robot error:', e);
             }
         }
 
