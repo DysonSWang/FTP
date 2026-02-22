@@ -154,6 +154,33 @@ jobs:
         echo "Rewrote app/build.gradle"
         grep -A2 "compileOptions" app/build.gradle
 
+    - name: Add Network Security Config
+      run: |
+        cd android/app/src/main
+        mkdir -p res/xml
+        cat > res/xml/network_security_config.xml << 'EOF'
+        <?xml version="1.0" encoding="utf-8"?>
+        <network-security-config>
+            <base-config cleartextTrafficPermitted="true">
+                <trust-anchors>
+                    <certificates src="system" />
+                </trust-anchors>
+            </base-config>
+            <domain-config cleartextTrafficPermitted="true">
+                <domain includeSubdomains="true">120.48.16.193</domain>
+                <domain includeSubdomains="true">localhost</domain>
+            </domain-config>
+        </network-security-config>
+        EOF
+        echo "✓ Created network_security_config.xml"
+
+    - name: Update AndroidManifest.xml
+      run: |
+        cd android/app/src/main
+        sed -i 's/<application/<application\n        android:networkSecurityConfig="@xml\/network_security_config"/' AndroidManifest.xml
+        echo "✓ Updated AndroidManifest.xml"
+        grep "networkSecurityConfig" AndroidManifest.xml
+
     - name: Build
       run: |
         cd android
