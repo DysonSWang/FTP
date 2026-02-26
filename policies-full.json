@@ -1,0 +1,100 @@
+{
+  "meta": {
+    "source": "海南自由贸易港官方公众号",
+    "sourceUrl": "https://mp.weixin.qq.com/s/upq5dCKuGRO_-KhuD4s3Kw",
+    "publishDate": "2025-10",
+    "totalPolicies": 4,
+    "categories": 11
+  },
+  "categories": [
+    {
+      "id": "top-design",
+      "count": 4,
+      "name": "顶层设计"
+    },
+    {
+      "id": "tax",
+      "count": 61,
+      "name": "税收政策"
+    },
+    {
+      "id": "talent",
+      "count": 17,
+      "name": "人才政策"
+    },
+    {
+      "id": "trade",
+      "count": 28,
+      "name": "贸易政策"
+    },
+    {
+      "id": "investment",
+      "count": 14,
+      "name": "投资政策"
+    },
+    {
+      "id": "finance",
+      "count": 16,
+      "name": "金融政策"
+    },
+    {
+      "id": "transport",
+      "count": 18,
+      "name": "运输政策"
+    },
+    {
+      "id": "industry",
+      "count": 34,
+      "name": "产业政策"
+    },
+    {
+      "id": "park",
+      "count": 14,
+      "name": "园区政策"
+    },
+    {
+      "id": "business-environment",
+      "count": 12,
+      "name": "营商环境"
+    },
+    {
+      "id": "legal",
+      "count": 29,
+      "name": "法律法规"
+    }
+  ],
+  "policies": [
+    {
+      "id": 1,
+      "category": "top-design",
+      "categoryName": "顶层设计",
+      "title": "习近平总书记在庆祝海南建省办经济特区 30 周年大会上的讲话",
+      "date": "2018-04-13",
+      "link": "https://www.hnftp.gov.cn/xwzx/ywsd/201804/t20180413_3021552.html"
+    },
+    {
+      "id": 2,
+      "category": "top-design",
+      "categoryName": "顶层设计",
+      "title": "中共中央 国务院《关于支持海南全面深化改革开放的指导意见》",
+      "date": "2018-04-11",
+      "link": "https://www.hnftp.gov.cn/xwzx/ywsd/201804/t20180414_3021553.html"
+    },
+    {
+      "id": 3,
+      "category": "top-design",
+      "categoryName": "顶层设计",
+      "title": "中共中央 国务院《海南自由贸易港建设总体方案》",
+      "date": "2020-06-01",
+      "link": "https://mp.weixin.qq.com/s?__biz=MzU5NjgxMDg3OA==&mid=2247495453&idx=1&sn=ecd5c4524eb481dc8e605fad305a66c6"
+    },
+    {
+      "id": 4,
+      "category": "top-design",
+      "categoryName": "顶层设计",
+      "title": "全国人大常委会《中华人民共和国海南自由贸易港法》",
+      "date": "2021-06-10",
+      "link": "https://mp.weixin.qq.com/s?__biz=MzU5NjgxMDg3OA==&mid=2247516195&idx=1&sn=16ebc6b39274e784956cd8f1b69d3ddb"
+    }
+  ]
+}

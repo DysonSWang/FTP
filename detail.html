@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>政策详情 - 海南自贸港政策库</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .policy-detail {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .policy-header {
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 30px;
+            margin-bottom: 30px;
+        }
+
+        .policy-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .policy-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .meta-icon {
+            font-size: 16px;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .level-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .policy-content {
+            margin-bottom: 40px;
+        }
+
+        .content-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-content {
+            color: #666;
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .policy-link-section {
+            background: #f8f9ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .policy-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .policy-link:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .related-policies {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .related-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .related-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .related-item {
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .related-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .related-item-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .related-item-date {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #ef4444;
+        }
+
+        @media (max-width: 768px) {
+            .policy-detail {
+                padding: 25px;
+            }
+
+            .policy-title {
+                font-size: 20px;
+            }
+
+            .policy-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .meta-item {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-btn">
+            ← 返回列表
+        </a>
+
+        <div class="policy-detail" id="policyDetail">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+
+    <script>
+        let policyId = null;
+
+        // 从 URL 获取政策 ID
+        function getPolicyIdFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('id');
+        }
+
+        // 加载政策详情
+        async function loadPolicyDetail(id) {
+            try {
+                const response = await fetch(`/api/policies/${id}`);
+                const result = await response.json();
+
+                if (!result.success) {
+                    showError('政策不存在');
+                    return;
+                }
+
+                renderPolicyDetail(result.data);
+            } catch (error) {
+                console.error('加载失败:', error);
+                showError('加载失败，请刷新重试');
+            }
+        }
+
+        // 渲染政策详情
+        function renderPolicyDetail(policy) {
+            const category = window.categories?.find(c => c.id === policy.category);
+            const container = document.getElementById('policyDetail');
+
+            container.innerHTML = `
+                <div class="policy-header">
+                    <h1 class="policy-title">${policy.title}</h1>
+                    <div class="policy-meta">
+                        ${category ? `<span class="category-badge" style="background: ${category.color}">${category.name}</span>` : ''}
+                        <span class="level-badge">
+                            <span class="meta-icon">${policy.level === 'national' || policy.level === 'national-law' ? '🇨🇳' : '📍'}</span>
+                            ${policy.level === 'national' || policy.level === 'national-law' ? '国家级' : '省级'}
+                        </span>
+                        <span class="meta-item">
+                            <span class="meta-icon">📅</span>
+                            ${policy.date}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="policy-content">
+                    <div class="policy-link-section">
+                        <div class="section-title">🔗 政策原文</div>
+                        <a href="${policy.link}" target="_blank" class="policy-link">
+                            查看官方原文 →
+                        </a>
+                    </div>
+
+                    <div class="content-section">
+                        <div class="section-title">📊 政策信息</div>
+                        <div class="section-content">
+                            <p><strong>政策 ID:</strong> ${policy.id}</p>
+                            <p><strong>发布日期:</strong> ${policy.date}</p>
+                            <p><strong>政策类别:</strong> ${category ? category.name : policy.category}</p>
+                            <p><strong>政策级别:</strong> ${policy.level === 'national' || policy.level === 'national-law' ? '国家级' : '省级'}</p>
+                            <p><strong>原文链接:</strong> <a href="${policy.link}" target="_blank">${policy.link}</a></p>
+                        </div>
+                    </div>
+                </div>
+
+                ${policy.related && policy.related.length > 0 ? `
+                    <div class="related-policies">
+                        <h3 class="related-title">📚 相关政策</h3>
+                        <div class="related-list">
+                            ${policy.related.map(r => `
+                                <div class="related-item" onclick="window.location.href='detail.html?id=${r.id}'">
+                                    <div class="related-item-title">${r.title}</div>
+                                    <div class="related-item-date">📅 ${r.date}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        // 显示错误
+        function showError(message) {
+            const container = document.getElementById('policyDetail');
+            container.innerHTML = `
+                <div class="error-state">
+                    <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
+                    <p>${message}</p>
+                    <a href="index.html" class="back-btn" style="margin-top: 20px;">返回列表</a>
+                </div>
+            `;
+        }
+
+        // 加载分类数据
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/categories');
+                const result = await response.json();
+                if (result.success) {
+                    window.categories = result.data;
+                }
+            } catch (error) {
+                console.error('加载分类失败:', error);
+            }
+        }
+
+        // 初始化
+        async function init() {
+            policyId = getPolicyIdFromUrl();
+            
+            if (!policyId) {
+                showError('缺少政策 ID');
+                return;
+            }
+
+            await loadCategories();
+            await loadPolicyDetail(policyId);
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
